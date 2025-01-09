@@ -1,0 +1,1872 @@
+###################################################### module #########################################################
+from tkinter import *
+import tkinter as tk
+from tkinter.ttk import *
+from tkinter import ttk
+from datetime import datetime
+import datetime
+from serial import *
+from serial.tools import list_ports
+import threading
+import serial,time
+from tkinter import messagebox
+import tkinter as tk
+import pyvisa
+import serial,time
+from serial import *
+from tkinter import *
+import pandas as pd
+import openpyxl
+from openpyxl.styles import Font
+from openpyxl.styles import PatternFill
+import os,glob
+from openpyxl import*
+from openpyxl import load_workbook
+from openpyxl.styles import Border, Side
+
+ 
+
+
+##################################################### class1 #############################################################
+
+class display:
+    def __init__(self,C_log_file):
+        global Product_Type_combobox,Test_Type_combobox,Test_Number_combobox,datetime_var
+        global Employee_name1,Serial_name1,Date_name1,datetime_label,datetime_entry,Lb2,image1,image,Sb2
+        global Start_button,Stop_button,Test_Number
+        global connect_button,path
+
+####################################################  root ################################################################
+
+        self.root=tk.Tk()
+        self.root.title("NCR Corporation")
+        #self.root.maxsize(1024,768)
+        self.root.minsize(1024,720)
+        self.x_com = serial_communications( self.root,C_log_file)
+
+####################################################  path ################################################################
+
+        directory_path = os.getcwd()
+
+        path = directory_path.replace("\\","/")
+
+#################################################### image ###############################################################
+
+        self.root.iconphoto(False,PhotoImage(file=f"{path}/logo2.png"))
+        image = tk.PhotoImage(file=f"{path}/logo3.png")
+        label = tk.Label(self.root, image=image,width=320,height=100,background="#ffffff")
+        label.place(x=3, y=2)
+        image1 = tk.PhotoImage(file=f"{path}/logo4.png")
+        label1= tk.Label(self.root, image=image1,width=320,height=100,background="#ffffff")
+        label1.place(x=1038, y=2)
+
+################################################### label1 ##################################################################
+
+        Employee_name = Label(self.root, text="Employee ID.    :",background="#FFFFFF",width=15,font=("Times New Roman", 13, "bold"))
+        Employee_name.place(x=540, y=11)
+        Serial_name   = Label(self.root, text="Serial No.          :",background="#FFFFFF",width=15,font=("Times New Roman", 13, "bold"))
+        Serial_name.place(x=540, y=42)
+        Date_name     = Label(self.root, text="Date.                    :",background="#FFFFFF",width=15,font=("Times New Roman", 13, "bold"))
+        Date_name.place(x=540, y=73)
+        Employee_name1= Text (self.root,width=20,height=0.3,font=("Times New Roman", 15, "bold"),wrap="none")
+        Employee_name1.place(x=690,y=11)
+        Serial_name1  = Text(self.root,width=20,height=0.3,font=("Times New Roman", 15, "bold"),wrap="none")
+        Serial_name1.place(x=690,y=41)
+        Date_name1    = Text(self.root,width=20,height=0.3,font=("Times New Roman", 15, "bold"))
+        Date_name1.place(x=690,y=71)
+
+################################################### combobox ##################################################################
+
+        Product_name = Label(self.root, text="Product Type.  :",background="#FFFFFF",width=15,font=("Times New Roman", 12, "bold"))
+        Product_name.place(x=2, y=180)
+
+        Test_name = Label(self.root, text="Test Type.       :",background="#FFFFFF",width=15,font=("Times New Roman", 12, "bold"))
+        Test_name.place(x=2, y=220)
+
+        TestNumber_name = Label(self.root, text="Test Number.  :",background="#FFFFFF",width=15,font=("Times New Roman", 12, "bold"))
+        TestNumber_name.place(x=2, y=260)
+
+        Product_Type = ["-------","445-0765003-3004","NA"]
+        Product_Type_combobox = ttk.Combobox(self.root, values=Product_Type,background="#ffffff",font=("Times New Roman", 12, "bold"))
+        Product_Type_combobox.place(x=130, y=180)
+        Product_Type_combobox.current(0)
+
+        Test_Type = ["-------","Continuous Type",  "Stepwise Type"]
+        Test_Type_combobox = ttk.Combobox(self.root, values=Test_Type,background="#ffffff",font=("Times New Roman", 12, "bold"),state="disable")
+        Test_Type_combobox.place(x=130, y=220)
+        Test_Type_combobox.current(0)
+
+        Test_Number = ["-------","TestPoint 3","TestPoint 5","TestPoint 6","TestPoint 9","TestPoint 10","TestPoint 18","TestPoint 20","TestPoint 21"]
+        Test_Number_combobox = ttk.Combobox(self.root, values=Test_Number,background="#ffffff",font=("Times New Roman", 12, "bold"),state="disable")
+        Test_Number_combobox.place(x=130, y=260)
+        Test_Number_combobox.current(0)
+
+################################################### label ###############################################################
+
+        Sb2 = ttk.Scrollbar(self.root,orient = 'vertical')
+        Sb2v = ttk.Scrollbar(self.root,orient = 'horizontal')
+
+        Lb2 = Listbox(self.root, width =115,height=25,xscrollcommand =Sb2v.set, yscrollcommand= Sb2.set,background="#ffffff",font=("Times New Roman", 12, ""))
+        Lb2.place(x=352,y=174)
+
+        Sb2.config(command=Lb2.yview)
+        Sb2.place(x=1276, y=172, height=506)
+        Sb2v.config(command = Lb2.xview)
+        Sb2v.place(x=350, y=679, width=941)
+
+################################################## date ####################################################################
+
+        datetime_label = ttk.Label(self.root, text="Select Date/Time:")
+        now = datetime.datetime.now()
+        datetime_var = tk.StringVar(value=now.strftime("%Y-%m-%d %H:%M:%S"))
+        datetime_var = tk.StringVar(value=now.strftime("%d-%m-%Y"))
+        datetime_entry = ttk.Entry(self.root, textvariable=datetime_var)
+
+################################################ buttion ###########################################################################
+
+        connect_button=tk.Button(self.root,text="CONNECT",width=20,height=1,command=lambda:[self.x_com.print_selections(),self.x_com.port_open(),self.x_com.Tektronix()],bg="#7F7FFF",font=("Times New Roman", 12, "bold"))
+        connect_button.place(x=100,y=340)
+
+        Start_button=tk.Button(self.root,text= "START_TEST",width=20,height=1,command=lambda:[self.x_com.threading_handler_send(),self.x_com.button_clicked(),self.x_com.button_clicked2(),self.x_com.checkSerialSaves()],bg="#008000",font=("Times New Roman", 12, "bold")) #self.x_com.threading_handler_relay(),self.x_com.update()
+        Start_button.place(x=100,y=380)
+
+        Stop_button=tk.Button(self.root,text="DISCONNECT",width=20,height=1,command=lambda:[self.x_com.threading_handler_stop()],bg="red",font=("Times New Roman", 12, "bold"))#command=lambda:[self.x_com.stop_printing()]
+        Stop_button.place(x=100,y=420)
+        self.root.config(background="#A9A9A9")
+
+############################################### combobox function ###############################################################################################
+
+        def activate_combobox(self):
+            global Test_Type_combobox
+
+            if Test_Type_combobox.get() == "Stepwise Type":
+                Test_Number_combobox.config(state="readonly",background="#ffffff")
+            else:
+                Test_Number_combobox.config(state="disabled",background="#ffffff")
+        Test_Type_combobox.bind("<<ComboboxSelected>>", activate_combobox)
+
+        def activate_combobox1(self):
+
+                global Product_Type_combobox
+
+                if Product_Type_combobox.get() == "445-0765003-3004":
+                    Test_Type_combobox.config(state="readonly",background="#ffffff")
+                else:
+                    Test_Type_combobox.config(state="disabled",background="#ffffff")
+
+        Product_Type_combobox.bind("<<ComboboxSelected>>", activate_combobox1)
+
+################################################ class2 main code  ###############################################################################################
+
+class serial_communications:
+
+    def __init__(self,root_instance,C_log_file):
+        super().__init__()
+        self.root=root_instance
+
+        self.comport_var1 = tk.StringVar()
+        self.ser = serial.Serial()
+        self.comport_names1=[]
+        self.list_x=[]
+        self.list_y=[]
+        self.list_z=[]
+        self.list_PF=[]
+        self.printing =True
+        self.relay_ready=True
+        self.connection_flag = False
+        self.Save_serial=False
+        self.Save_serial1=False
+        self.count=0
+        self.C_log_file=C_log_file
+        print("------>",self.C_log_file)
+
+################################################ self buttion ########################################################################################################
+    def Tektronix(self):
+        global rm,oscilloscope
+
+        rm = pyvisa.ResourceManager()
+
+        print(rm.list_resources())
+
+        # Open a connection to the oscilloscope
+        oscilloscope = rm.open_resource('USB::0x0699::0x0368::C010614::INSTR')
+        Lb2.insert(tk.END,"   INSTRUMENT        : "  +     oscilloscope.query("*IDN?"))
+        oscilloscope.write('CH1:VOLts 0.5')
+        oscilloscope.write('HORizontal:MAIn:SCAle 100E-9')
+    def serial_comm(self):
+
+        self.comports = list_ports.comports()
+        self.comports = sorted(self.comports)
+        self.comport_names1=[]
+        for port in self.comports:
+            self.comport_names1.append(port.device)
+        self.comport_var1 = tk.StringVar(value=self.comport_names1[0])
+        self.comport = self.comport_var1.get()
+
+        self.ser.port = "COM6" 
+        self.ser.baudrate = 115200
+        self.ser.bytesize=8
+        self.ser.stopbits=1
+        self.ser.timeout = 3
+        self.ser.bytesize=serial.EIGHTBITS
+        self.ser.parity=serial.PARITY_NONE
+        self.ser.stopbits=serial.STOPBITS_ONE
+        return  "COM6"
+
+    def print_selections(self):
+
+
+        global Product_Type_combobox,Test_Type_combobox
+
+        try:
+
+            re_com =self.serial_comm()
+            Lb2.insert(tk.END,"  PORT NO                   : "  +               re_com)
+
+        except IndexError as index_err:
+            if index_err:
+                messagebox.showinfo(title="NCR Corporation", message=" Port is Not Connect ",)
+
+        except SerialException as ser_err:
+            if ser_err:
+                messagebox.showinfo(title="NCR Corporation", message=" Port is  Not Connect ",)
+
+
+
+    def port_open(self):
+        global context_menu,time1
+
+        try:
+            self.serial_comm()
+            print("open port")
+            self.printing = True
+            self.ser.open()
+            print("open port2")
+            connect_button.config(state=tk.DISABLED)
+            self.connection_flag = True
+            Serial_name1.delete("1.0",'end-1c')
+            Employee_name1.delete("1.0",'end-1c')
+            Serial_name1.bind("<KeyPress>",self.handle_keypress)
+            Employee_name1.bind('<Return>', self.first_wizard_enter)
+
+            """# Bind the Enter key to the second wizard's text widget
+            second_wizard.bind('<Return>', second_wizard_enter)"""
+            # Set the focus on the first text wizard initially
+            Employee_name1.focus_set()
+            # Disable editing in the second text wizard initially
+            Serial_name1.config(state='disabled')
+
+
+            Serial_name1.bind('<KeyRelease-c>', self.copy_text)
+            time1 = time.perf_counter()
+            print(time1)
+            # Bind the Ctrl+V key release event to paste text from the clipboard
+            Serial_name1.bind('<KeyRelease-v>', self.paste_text)
+            context_menu = tk.Menu(Serial_name1, tearoff=0)
+            # Allow right-click context menu for copy and paste using the mouse
+            context_menu.add_command(label='Copy', command=lambda: Serial_name1.event_generate('<<Copy>>'))
+            context_menu.add_command(label='Paste', command=lambda: Serial_name1.event_generate('<<Paste>>'))
+            Serial_name1.bind('<Button-3>', self.show_context_menu)
+
+            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        except:
+            pass
+
+
+    def popup_message(self):
+        messagebox.showinfo(title="NCR Corporation", message=" Port is  Not Connect ",)
+
+################################################# start buttion ######################################################################################################
+
+    def first_wizard_enter(self,event):
+    # Get the input from the first text wizard
+        input_text = Employee_name1.get('1.0', 'end-1c')
+        print(input_text)
+
+        if input_text != " ":
+            if  event.keysym == 'Return':
+                Serial_name1.delete('1.0', 'end')
+                Serial_name1.config(state='normal')
+                Serial_name1.focus_set()
+                return "break"
+
+
+    def second_wizard_enter(self,event):
+    # Get the input from the second text wizard
+        input_text = Serial_name1.get('1.0', 'end-1c')
+        print(input_text)
+
+        if input_text != " ":
+            if  event.keysym == 'Return':
+                #first_wizard.delete('1.0', 'end')
+                Employee_name1.config(state='normal')
+                Employee_name1.focus_set()
+
+
+    def copy_text(self,event):
+        if Serial_name1.tag_ranges(tk.SEL):
+            selected_text = Serial_name1.get(tk.SEL_FIRST, tk.SEL_LAST)
+            Serial_name1.clipboard_clear()
+            Serial_name1.clipboard_append(selected_text)
+
+    def paste_text(self,event):
+        global time2
+
+        clipboard_text = Serial_name1.clipboard_get()
+        time2 = time.perf_counter()
+        print(time2)
+        if time2-time1 <1:
+            Serial_name1.insert(tk.INSERT, clipboard_text)
+
+
+    def show_context_menu(self,event):
+        context_menu.post(event.x_root, event.y_root)
+
+    def handle_keypress(self,event):
+        print("inside")
+
+        if event.keysym == 'Return':
+            return "break"  # Prevent the default behavior of moving to the next line
+
+        elif event.keysym == 'BackSpace':
+            self.erase_character()
+            return "break"
+        """else:
+            barcode = event.char
+            Serial_name1.insert("end", barcode)
+            return "break"  # Prevent the Text widget from inserting a newline character"""
+
+    def erase_character(self):
+        Serial_name1.delete("end-2c")
+
+
+    def receive_data(self):
+        global datay
+
+        state = False
+        if(self.printing):
+
+            try:
+                if self.connection_flag == True:
+                    if self.ser.in_waiting > 0:
+
+                        try:
+                            data = self.ser.read_all().decode("utf-8").strip()
+
+                            if "*" in data:
+                                datay = data.split("*")
+
+                                Lb2.insert(tk.END, f"{datay[0]}")
+                                Lb2.insert(tk.END, " 'Input +5v'  :" + f"{datay[1]}")
+                                Lb2.insert(tk.END, " 'Input -5v'  :" + f"{datay[2]}")
+                                Lb2.insert(END,  "\n")
+
+                            else:
+                                print (data)
+                               # Lb2.insert(tk.END, data)
+                                #Lb2.insert(END,  "\n")
+                                print (len(data))
+                                if "TP3" == data :
+                                    print("obtaining TP3")
+                                    w,z=self.cro_data(3,0.75)
+                                    print("TP3, v to v , hz", w,z)
+                                    if (w >=2.00 and w <= 5.00) and (z >=13.00 and z<=13.60): # and (y >=0 or y<=0.2)
+                                        Lb2.insert(tk.END, "TP3 value  :" +   f"{w}" +" V" + "  Frequency  :" + f"{z}" +" MHz"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  PASS")
+                                        #Lb2.insert(tk.END, "TP3 adc *PASS*")
+                                        self.list_x.append("TP3 max: " + str(5)+ " min: " + str(2))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+ str (z))
+                                        self.list_PF.append("TP3 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "TP3 value  :" +   f"{w}" + " V" + "  Frequency  :" + f"{z}" +" MHz" + "  FAIL")
+                                        # Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  FAIL")
+                                        #Lb2.insert(tk.END, "TP3 adc *FAIL*")
+                                        self.list_x.append("TP3 max: " + str(5)+ " min: " + str(2))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP3 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP5" == data:
+                                    print("obtaining TP5")
+                                    w,z=self.cro_data(5,0.95)
+                                    print("TP5, v to v , hz", w,z)
+                                    if (w >=1.20 and w <= 3.00)and(z >=13.00 and z<=13.60): #and (y >=0 or y<=0.2):
+                                        Lb2.insert(tk.END, "TP5 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}"+ "  PASS")
+                                        #Lb2.insert(tk.END, "TP5 adc *PASS*")
+                                        self.list_x.append("TP5 max: " + str(3.00)+ " min: " + str(1.20))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+ str (z))
+                                        self.list_PF.append("TP5 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "TP5 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}"+ "  FAIL")
+                                        #Lb2.insert(tk.END, "TP5 adc *FAIL*")
+                                        self.list_x.append("TP5 max: " + str(3.00)+ " min: " + str(1.20))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+ str (z))
+                                        self.list_PF.append("TP5 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP6" == data :
+                                    print("obtaining TP6")
+                                    w,z=self.tp6_dmm()
+                                    print("TP6 v to v, hz", w,z)
+                                    if (w >=0.1 and w <= 1.50)and(z >=12.00 and z<=33.30):
+                                        Lb2.insert(tk.END, "TP6 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  PASS")
+                                        #Lb2.insert(tk.END, "TP6 adc *PASS*")
+                                        self.list_x.append("TP6 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP6 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+
+
+                                    else:
+                                        Lb2.insert(tk.END, "TP6 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}"+ "  FAIL")
+                                        self.list_x.append("TP6 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+ str (z))
+                                        self.list_PF.append("TP6 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP9" == data :
+                                    print("obtaining TP9")
+                                    w,z=self.cro_data(9,0.9)
+                                    print("TP9 v to v, hz", w,z)
+                                    if (w >=0.10 and w <= 1.50): #and (y >=0 or y<=0.2):
+                                        Lb2.insert(tk.END, "TP9 value  :" +   f"{w}" +" V"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  PASS")
+                                        #Lb2.insert(tk.END, "TP9 adc *PASS*")
+                                        self.list_x.append("TP9 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP9 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "TP9 value  :" +   f"{w}"+" V"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  FAIL")
+                                        #Lb2.insert(tk.END, "TP9 adc *FAIL*")
+                                        self.list_x.append("TP9 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP9 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP10" == data :
+                                    print("obtaining TP10")
+                                    w,z=self.cro_data(10,0.9)
+                                    print("TP10, v to v, hz", w,z)
+                                    if (w >=0.10 and w <= 1.5): # and (y >=0 or y<=0.2):
+                                        Lb2.insert(tk.END, "TP10 value  :" +   f"{w}" +" V"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  PASS")
+                                       # Lb2.insert(tk.END, "TP10 adc *PASS*")
+                                        self.list_x.append("TP10 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP10 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "Tp10 value  :" +   f"{w}" +" V"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  FAIL")
+                                        #Lb2.insert(tk.END, "TP10 adc *FAIL*")
+                                        self.list_x.append("TP10 max: " + str(1.5)+ " min: " + str(0.1))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP10 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP11" in data :
+                                    print("obtaining tP11")
+                                    temp = data.split(' ')
+                                    print(temp)
+
+                                    tempx=float(temp[1])
+                                    tempx = round(tempx,2)
+                                    if (tempx >=0.50 and tempx <= 2.00): #and (y >=0 or y<=0.2):
+
+                                        Lb2.insert(tk.END, "TP11 value  :" +   f"{tempx}" +" V"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}")
+                                        #Lb2.insert(tk.END, "TP11 adc *PASS*")
+                                        self.list_x.append("TP11 max: " + str(2)+ " min: " + str(0.5))
+                                        self.list_y.append("value:" + str (tempx))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP11 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+
+                                        Lb2.insert(tk.END, "TP11 value  :" +   f"{tempx}" +" V"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}")
+                                        #Lb2.insert(tk.END, "TP11 adc *FAIL*")
+                                        self.list_x.append("TP11 max:" + str(2)+ " min:" + str(0.5))
+                                        self.list_y.append("value:" + str ( tempx))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP11 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP18" == data :
+                                    print("obtaining TP18")
+                                    w,z=self.cro_data(18,0.9)
+                                    print("TP18,v to v, hz", w,z)
+                                    if (w >=1.50 and w <= 5.00)and(z >=13.00 and z<=13.60):
+                                        Lb2.insert(tk.END, "TP18 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  PASS")
+                                        #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                        #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}"+ "  PASS")
+                                        #Lb2.insert(tk.END, "TP18 adc *PASS*")
+                                        self.list_x.append("TP18 max: " + str(5.0)+ " min: " + str(1.5))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP18 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "Tp18 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  FAIL")
+                                        #Lb2.insert(tk.END, "TP18 adc *FAIL*")
+                                        self.list_x.append("TP18 max: " + str(5.0)+ " min: " + str(1.5))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP18 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP20" == data :
+                                    print("obtaining TP20")
+                                    w,z=self.cro_data(20,0.9)
+                                    print("TP20 v to v, hz", w,z)
+                                    if (w >=2.7 and w <=5.5)and(z >=13.00 and z<=13.60):
+                                        Lb2.insert(tk.END, "TP20 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  PASS")
+                                      #  Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                      #  Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  PASS")
+                                       # Lb2.insert(tk.END, "TP20 adc *PASS*")
+                                        self.list_x.append("TP20 max: " + str(5.5)+ " min: " + str(2.7))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP20 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "TP20 value  :" +   f"{w}" +" V"+ "  Frequency  :" + f"{z}" +" MHz"+ "  FAIL")
+                                        #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}" + "  FAIL")
+                                        #Lb2.insert(tk.END, "TP20 adc *FAIL*")
+                                        self.list_x.append("TP20 max: " + str(5.5)+ " min: " + str(2.7))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str (z))
+                                        self.list_PF.append("TP20 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "TP21" == data :
+                                    print("obtaining TP21")
+                                    w,z=self.cro_data(21,0.9)
+                                    print("TP21,v to v , hz", w,z)
+                                    if (w>=0.05 and w<=1.00):
+                                        Lb2.insert(tk.END, "TP21 value  :" +   f"{w}"+" V"+ "  PASS")
+                                       # Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                       # Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                       # Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}")
+                                       # Lb2.insert(tk.END, "TP21 adc *PASS*")
+                                        self.list_x.append("TP21 max: " + str(1.0)+ " min: " + str(0.05))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP21 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "TP21 value  :" +   f"{w}"+" V"+"  FAIL")
+                                        #Lb2.insert(tk.END, "TP21 adc *FAIL*")
+                                        self.list_x.append("TP21 max: " + str(1.0)+ " min: " + str(0.05))
+                                        self.list_y.append("value:" + str (w))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("TP21 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+                                
+                                if "FB1" in data :
+                                    print("obtaining FB1")
+                                    temp = data.split(' ')
+                                    tempx=float(temp[1])
+
+                                    print(temp)
+
+                                    if tempx>=4.8 and tempx<=5.00:
+
+                                        Lb2.insert(tk.END, "FB1 value  :" +   f"{temp[1]}" +" V"+"  PASS")
+                                        #Lb2.insert(tk.END, "FB1 adc *PASS*")
+                                        self.list_x.append("FB1 Output")
+                                        self.list_y.append("value:" + str (temp[1]))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("FB1 adc *PASS*")
+                                        Lb2.insert(END,  "\n")
+
+                                    else:
+                                        Lb2.insert(tk.END, "FB1 value  :" +   f"{temp[1]}" +" V"+ "  FAIL")
+                                        #Lb2.insert(tk.END, "FB1 adc *FAIL*")
+                                        self.list_x.append("FB1 Output")
+                                        self.list_y.append("value:" + str (temp[1]))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("FB1 adc *FAIL*")
+                                        Lb2.insert(END,  "\n")
+
+                                if "FB2" in data :
+                                    print("obtaining FB2")
+                                    temp = data.split(' ')
+                                    tempx=float(temp[1])
+
+
+                                    if tempx>=4.80 and tempx<=5.00:
+                                        Lb2.insert(tk.END, "FB2 value  :"+   f"{temp[1]}" +" V"+ "  PASS")
+                                        #Lb2.insert(tk.END, "FB2 adc *PASS*")
+                                        self.list_x.append("FB2 Output")
+                                        self.list_y.append("value:" + str (temp[1]))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("FB2 adc *PASS*")
+                                        oscilloscope.write('CH1:VOLts 0.5')
+                                        Lb2.insert(END,  "\n")
+                                    else:
+                                        Lb2.insert(tk.END, "FB2 value  :" +   f"{temp[1]}"+" V"+"  FAIL")
+                                        #Lb2.insert(tk.END, "FB2 adc *FAIL*")
+                                        self.list_x.append("FB2 Output")
+                                        self.list_y.append("value:" + str (temp[1]))
+                                        self.list_z.append("frq:"+str ("NA"))
+                                        self.list_PF.append("FB2 adc *FAIL*")
+                                        oscilloscope.write('CH1:VOLts 0.5')
+                                        Lb2.insert(END,  "\n")
+
+                                if "10RMS" in data :
+                                        print("obtaining 10RMS")
+                                        w=self.cro_data_rms()
+                                        print("10RMS",w)
+                                        time.sleep(10)
+                                        oscilloscope.write('CH1:VOLts 10')
+                                        if (w>=0.40 and w<=1.80):
+                                            Lb2.insert(tk.END, "TP10DMM value  :"+   f"{w}" +" V"+ "  PASS")
+                                            #Lb2.insert(tk.END, " 'Maximum voltage'  :" +   f"{x}")
+                                            #Lb2.insert(tk.END, " 'Minimum voltage'  :" +   f"{y}")
+                                            #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}")
+                                            #Lb2.insert(tk.END, "TP10_DMM adc *PASS*")
+                                            self.list_x.append("TP10_DMM max: " + str(1.8)+ " TP10_DMM min: " + str(0.4))
+                                            self.list_y.append("value:" + str (w))
+                                            self.list_z.append("frq:"+str ("NA"))
+                                            self.list_PF.append("TP10_DMM adc *PASS*")
+                                            Lb2.insert(END,  "\n") 
+                                        else:
+                                            Lb2.insert(tk.END, "TP10DMM value  :"+   f"{w}" +" V"+ "  FAIL")
+                                            #Lb2.insert(tk.END, " 'Frequency'        :" +    f"{z}")
+                                            #Lb2.insert(tk.END, "TP10_DMM adc *FAIL*")
+                                            self.list_x.append("TP10_DMM max: " + str(1.8)+ " TP10_DMM min: " + str(0.4))
+                                            self.list_y.append("value:" + str (w))
+                                            self.list_z.append("frq:"+str ("NA"))
+                                            self.list_PF.append("TP10_DMM adc *FAIL*")
+                                            Lb2.insert(END,  "\n")
+
+                                        """for i in x :
+                                        Lb2.insert(tk.END, i)
+                                        #print(i)"""
+
+                        except:
+                            pass
+
+            except SerialException :
+                state = True
+                self.printing = False
+                self.ser.flush()
+        """print(self.list_x)
+        print(self.list_y)
+        print(self.list_z)"""
+        if(state):
+          messagebox.showinfo(title="NCR Corporation", message=" fist select self test ")
+
+####################################################### Relay on ####################################################
+
+        self.serFlag = 0
+        self.Event_t = True
+
+    def relay_on(self):
+        global Event_r
+        Event_r = True
+
+        while (Event_r):
+
+                    if self.ser.is_open:
+
+
+                        if "Continuous Type" or "Stepwise Type" in Test_Type_combobox.get():
+                            print("Relay on ")
+                            Event_r = False
+
+                            pin_on = "3110" #relay on
+                            self.ser.write(pin_on.encode('utf-8'))
+
+
+        time.sleep(0.05)
+        if(self.relay_ready):
+
+
+            print("text2",self.ser.in_waiting)
+
+            if self.ser.in_waiting > 0:
+
+                try:
+                    data = self.ser.read(self.ser.in_waiting).decode("utf-8")
+                    x =  data.split('\n')
+
+                    for i in x :
+                        Lb2.insert(tk.END, i)
+
+
+
+                except:
+
+                    pass
+###################################################### send data #######################################################################################################################
+
+        self.serFlag = 0
+        self.Event_t = True
+
+    #Serial_name=" "
+
+    def send_data(self):
+        global Event_t,Date_name
+
+
+        list_cmd=["3010","3100","3101","3102","3103","3104","3105","3106","3107","3108","3210","3220","3109","3000"]
+        Event_t = True
+        flag = True
+
+        Product_name = Product_Type_combobox.get()
+        Test_name= Test_Type_combobox.get()
+        TestNumber_name=Test_Number_combobox.get()
+        datetime = datetime_var.get()
+        Employee_name=Employee_name1.get("1.0",'end-1c')
+        Serial_name=Serial_name1.get("1.0",tk.END)
+        Date_name=Date_name1.get("1.0",'end-1c')
+
+
+        if  Product_name != "-------" and Test_name !="-------":
+
+                Lb2.insert(tk.END,"  Employee ID       : "  +        Employee_name + '.')
+
+
+
+                Lb2.insert(tk.END,"  Serial No         : "  +          Serial_name +'.')
+
+                Lb2.insert(tk.END,"  Product Type      : "  +         Product_name +'.')
+
+                Lb2.insert(tk.END,"  Test Type         : "  +            Test_name +'.')
+
+                Lb2.insert(tk.END,"  Test Number       : "  +      TestNumber_name +'.')
+
+                Lb2.insert(tk.END,"  DATE             : "  +             datetime +'.')
+                Lb2.insert(END,  "\n")
+                Date_name1.insert(tk.END," "+ datetime +'.')
+
+        else:
+                messagebox.showinfo(" showinfo ", " Select In Product , Test , Employee name , Serial NO, Date ")
+                Start_button.config(state=tk.NORMAL)
+
+        self.connection_flag=True
+        print(len(Serial_name))
+        try:
+            if self.connection_flag == True and Employee_name.isalpha() or Employee_name.isalnum() or Employee_name.isnumeric():
+                  if len(Serial_name)-1 ==12:
+                     if "Continuous Type" in Test_Type_combobox.get() or "Stepwise Type" in Test_Type_combobox.get():
+                        while (Event_t):
+
+                            try:
+                                if self.ser.is_open:
+
+                                    if "Continuous Type" in Test_Type_combobox.get():
+                                        for pin_on in list_cmd:
+                                            print(f"{pin_on}")
+                                            self.ser.write(pin_on.encode('utf-8'))
+                                            time.sleep(2)
+                                            self.receive_data()
+                                        Event_t = False
+                                        self.receive_data_1()
+
+
+                                        """print("Continuous")
+                                        Event_t = False
+                                        flag = False
+                                        pin_on = "3210" #Continuous
+                                        self.ser.write(pin_on.encode('utf-8'))
+
+                                    elif(flag==True):
+
+
+                                        if  "TestPoint 3" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 3")
+                                            Event_t = True
+                                            flag = False
+                                            pin_on = "3020" #TP 3
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 5" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 5")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3030" #TP 5
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 6" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 6")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3040" #TP 6
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 9" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 9")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3050" #TP 9
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 10" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 10")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3060" #TP 10
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 18" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 18")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3300" #TP18[freq]
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 20" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 20")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3310" #TP[freq]
+                                            self.ser.write(pin_on.encode('utf-8'))
+
+                                        if  "TestPoint 21" in  Test_Number_combobox.get():         #Test_Number_combobox.get() in Test_Number:
+                                            print("Testing 21")
+                                            Event_t = False
+                                            flag = False
+                                            pin_on = "3320" #TP[freq]
+                                            self.ser.write(pin_on.encode('utf-8'))
+                                        """
+                            except SerialException:
+                                if self.ser.is_open:
+                                    pass
+                     else:
+                        self.connection_flag=False
+        except:
+            pass
+
+#################################################### stop buttion #############################################################################################################################
+    def cro_data(self,select,Trigger):
+        #------------------------------------------------------------------waveform measurement---------------------------------------------
+        oscilloscope.write('DAT:ENC ASCIi')
+        oscilloscope.write('SELect:CH1 ON')
+        print('select-->', type(select))
+        if select == 18 or select==20 or select==21: 
+            print("in if")
+            oscilloscope.write('CH1:VOLts 2')
+            oscilloscope.write(f' TRIGger:MAIn:LEVel {Trigger}')
+            #time.sleep(1)
+        elif select == 9:
+            print('in else')
+            oscilloscope.write('CH1:VOLts 1')
+            #time.sleep(1)
+        else:
+            print('in else')
+            oscilloscope.write('CH1:VOLts 0.5')
+            oscilloscope.write(f' TRIGger:MAIn:LEVel {Trigger}')
+            #time.sleep(1)
+        # Set the measurement type to peak-to-peak voltage
+
+        time.sleep(2)
+        oscilloscope.write('MEASUrement:IMMed:SOUrce1 CH1')
+        oscilloscope.write('MEASUrement:IMMed:TYPe PK2pk')
+        peak_to_peak_voltage = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+        peak_to_peak_voltage = round(peak_to_peak_voltage,2)
+        print("p 2 p", peak_to_peak_voltage)
+        #----------------------------------------------------------------------frequency measurement------------------------------------------
+        time.sleep(2)
+        oscilloscope.write('MEASUrement:IMMed:TYPe FREQuency')
+        # Request the peak-to-peak voltage measurement result
+        #oscilloscope.write('MEASUrement:MEAS1:VALue?')
+        frequency = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+        frequency=float(frequency)/1e6
+        frequency = round(frequency,2)
+        # Print the peak-to-peak voltage
+        print('freq:', frequency)
+        #----------------------------------------------------------------------waveform data processing--------------------------------------
+        # Decode waveform data
+        """waveform_data = waveform_data.decode().strip().split(',')
+        waveform_data = np.array(waveform_data, dtype=float)
+        # Calculate peak-to-peak voltage
+        peak_to_peak_voltage = np.max(waveform_data) - np.min(waveform_data)
+        #peak_to_peak_voltage=peak_to_peak_voltage #
+        # Print the peak-to-peak voltage
+        print('Peak-to-Peak Voltage:', peak_to_peak_voltage)"""
+        # Calculate maximum and minimum voltage
+        """maximum_voltage = np.max(waveform_data)#
+        minimum_voltage = np.min(waveform_data)#
+        maximum_voltage=round(maximum_voltage,3)
+        minimum_voltage=round(minimum_voltage,3)
+        # Print the maximum and minimum voltage
+        print('Maximum Voltage:', maximum_voltage)
+        print('Minimum Voltage:', minimum_voltage)
+        # Decode the response and print the frequency value
+        # frequency = frequency.strip()
+
+        print('Current frequency:', frequency)"""
+        #oscilloscope.close()
+        #rm.close()
+
+        return peak_to_peak_voltage,frequency
+    
+    def cro_data_rms(self):
+
+        list_Dmm=[]
+        listN_Dmm=[]
+        #------------------------------------------------------------------waveform measurement---------------------------------------------
+        # Set the measurement type to rms voltage
+        for i in range (5):
+            oscilloscope.write('CH1:VOLts 1')
+            oscilloscope.write('MEASUrement:IMMed:SOUrce1 CH1')
+            oscilloscope.write('MEASUrement:IMMed:TYPe CRMs')
+            rms_voltage = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+            rms_voltage = round(rms_voltage,2)
+            print("10rms", rms_voltage)
+            list_Dmm.append(rms_voltage)
+            time.sleep(1)
+        for i in list_Dmm:
+            if i=="9.9e+31" or i== 9.9e+31 or i=="9.9e+37" or i== 9.9e+37 :
+                pass  #listN_feq= [item for item in list_feq if item != i]
+            else:
+               listN_Dmm.append(i) 
+        print(listN_Dmm)
+        average_dmm = sum(listN_Dmm) / len(listN_Dmm)
+        average_dmm=round(average_dmm,2)
+
+        print("The average is:", average_dmm)
+        return average_dmm
+
+    def tp6_dmm(self):
+        list_PkP=[]
+        list_feq=[]
+        listN_feq=[]
+        listN_PkP=[]
+        oscilloscope.write('DAT:ENC ASCIi')
+        oscilloscope.write('SELect:CH1 ON')
+        oscilloscope.write('CH1:VOLts 0.3')
+        oscilloscope.write(' TRIGger:MAIn:LEVel 0.624')
+        time.sleep(1)
+
+        for i in range (5):
+            oscilloscope.write('MEASUrement:IMMed:SOUrce1 CH1')
+            oscilloscope.write('MEASUrement:IMMed:TYPe PK2pk')
+            peak_to_peak_voltage = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+            peak_to_peak_voltage = round(peak_to_peak_voltage,2)
+            #print("p 2 p", peak_to_peak_voltage)
+            list_PkP.append(peak_to_peak_voltage)
+            time.sleep(1)
+
+        for i in list_PkP:
+            if i=="9.9e+31" or i== 9.9e+31 or i=="9.9e+37" or i== 9.9e+37:
+                pass
+            else:
+                listN_PkP.append(i)
+        print(listN_PkP)
+        
+        average_pkp = sum(listN_PkP) / len(listN_PkP)
+        average_pkp=round(average_pkp,2)
+
+        print("The average is:", average_pkp)   
+       
+        #----------------------------------------------------------------------frequency measurement------------------------------------------
+        time.sleep(2)
+
+        for i in range (5):
+            oscilloscope.write('MEASUrement:IMMed:TYPe FREQuency')
+            frequency = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+            frequency=float(frequency)/1e6
+            frequency = round(frequency,2)
+        # Print the peak-to-peak voltage
+        #print('freq:', frequency)
+            list_feq.append(frequency)
+            time.sleep(1)
+
+        for i in list_feq:
+            print("<--->",i)
+            if i=="9.9e+31" or i== 9.9e+31 or i=="9.9e+37" or i== 9.9e+37 or i>45.00:
+                pass  #listN_feq= [item for item in list_feq if item != i]
+            else:
+               listN_feq.append(i) 
+        print(listN_feq)
+
+        if len(listN_feq)==0:
+            average_feq = 0
+            average_feq=0
+        else:
+            average_feq = sum(listN_feq) / len(listN_feq)
+            average_feq=round(average_feq,2)
+
+        print("The average is:--->", average_feq)
+        return average_pkp,average_feq
+
+    def stop_printing(self):
+        global Event_r
+        Event_r = True
+
+
+        while (Event_r):
+            # print("text3",self.ser.is_open)
+
+                    if self.ser.is_open:
+
+
+                        if "Continuous Type" or "Stepwise Type" in Test_Type_combobox.get():
+                            print("Relay off ")
+                            Event_r = False
+
+                            pin_on = "3100" #relay on
+                            self.ser.write(pin_on.encode('utf-8'))
+                            #
+                            self.ser.reset_output_buffer()
+
+                    # self.ser.reset_input_buffer()
+        time.sleep(0.05)
+        if(self.relay_ready):
+
+
+            #print("text4",self.ser.in_waiting)
+
+            if self.ser.in_waiting > 0:
+
+                try:
+                    data = self.ser.read(self.ser.in_waiting).decode("utf-8")
+                    x =  data.split('\n')
+
+                    self.ser.reset_input_buffer()
+
+                    for i in x :
+                        Lb2.insert(tk.END, i)
+
+                except:
+
+                    pass
+
+        self.printing=False
+        self.root.after_cancel( self.receive_data)
+        print("stop")
+        Event_r = False
+        connect_button.config(state=tk.NORMAL)
+        self.ser.close()
+        Lb2.delete(0,tk.END)
+
+
+    def clear_listbox(self):
+        Lb2.delete(0,tk.END)
+        Serial_name1.delete("1.0",'end-1c')
+        Date_name1.delete("1.0",'end-1c')
+        Start_button.config(state=tk.NORMAL)
+
+    def clear_listbox_2(self):
+        Lb2.delete(0,tk.END)
+        Serial_name1.delete("1.0",'end-1c')
+        Date_name1.delete("1.0",'end-1c')
+        Start_button.config(state=tk.NORMAL)
+
+
+    def button_clicked(self):
+         value =Serial_name1 .get("1.0",'end-1c')
+         value1 =Employee_name1.get("1.0",'end-1c')
+         if value.isalnum():
+            if len(value)!=0 and len(value)==12:
+                self.Save_serial=True
+                print("Input number:", value)
+                print("Serial v+",self.Save_serial1)
+
+                #return self.Save_serial
+            elif len(value)!=0 and len(value)<12:
+                messagebox.showinfo(message="Invalid Serial Number")
+                self.Save_serial=False
+                print("Serial 1v-",self.Save_serial1)
+
+                #return self.Save_serial
+            else:
+                messagebox.showinfo(message="Invalid Serial Number")
+                self.Save_serial=False
+                print("Serial 2v-",self.Save_serial1)
+
+                #return self.Save_serial
+         else:
+            messagebox.showinfo(message="Invalid Serial Number")
+            self.Save_serial=False
+            print("Serial 3v-",self.Save_serial1)
+
+         """if self.Save_serial:
+            Start_button.config(state=tk.DISABLED)
+         else:
+            self.clear_listbox_2()"""
+            #return self.Save_serial
+
+
+    def button_clicked2(self):
+         value1 =Employee_name1.get("1.0",'end-1c')
+         if value1.isalnum() or value1.isalpha() or value1.isnumeric():
+                self.Save_serial1=True
+                print("Input name:",value1)
+                print(self.Save_serial1)
+
+                #return self.Save_serial
+         else:
+            messagebox.showinfo(message="Empty Name")
+            self.Save_serial1=False
+            print(self.Save_serial1)
+
+         """if self.Save_serial1:
+            Start_button.config(state=tk.DISABLED)
+         else:
+            self.clear_listbox_2()"""
+            #return self.Save_serial
+
+    def checkSerialSaves(self):
+         if self.Save_serial and self.Save_serial1:
+            Start_button.config(state=tk.DISABLED)
+         else:
+            self.clear_listbox_2()
+            #return self.Save_serial
+
+    def show_custom_message_box(self,message, title, text_color, bg_color):
+        # Create a Tkinter root window
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+
+        # Create a custom message box using a Toplevel window
+        top = tk.Toplevel(root)
+        top.title(title)
+        print("show")
+        # Set the window dimensions and position it in the center of the screen
+        window_width = 300
+        window_height = 150
+        screen_width = top.winfo_screenwidth()
+        screen_height = top.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        top.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+        # Create a Label widget with bold text and color
+        label = tk.Label(top, text=message, font=("TkDefaultFont", 12, "bold"), fg=text_color, bg=bg_color)
+        label.pack(padx=20, pady=10)
+
+        # Create a close button to close the message box
+        button = tk.Button(top, text="Close", command=top.destroy)
+        button.pack(pady=10)
+
+        # Make the message box modal
+        top.focus_set()
+        top.grab_set()
+        top.wait_window()
+
+##################################################### save file #########################################################################################################################
+    read = ()
+    def receive_data_1(self):
+        global path,read,file_name,file,file_path,x, select_PF
+        select_z=[]
+        select_mm=[]        #select max min
+        select_PF=[]             #select pass/fail
+        select_value=[]       #select value
+        print("retrieve")
+        #print(x)
+        read = Lb2.get(0,tk.END)
+        #print(read)
+        obt_read = " ".join(read)
+        #print(obt_read)
+        obt_read_s=obt_read.split("*")
+       # print(obt_read_s)
+        #print(obt_read)
+
+        try:
+            for a in self.list_x:
+                if 'max' or 'FB1' or 'FB2' in a:
+                    select_mm.append(a)
+            print(select_mm)
+        except:
+            pass
+
+
+        try:
+            for a in self.list_PF:
+                if '*PASS*' in a:
+                    val_pf="PASS"
+                    select_PF.append(val_pf)
+                elif '*FAIL*' in a:
+                    val_pf="FAIL"
+                    select_PF.append(val_pf)
+
+            print(select_PF)
+        except:
+            pass
+
+        try:
+            for a in self.list_y:
+                if 'value' in a:
+                    val=a.strip("value: ")
+                    if 'nan' in a:
+                        select_value.append(val)
+                    else:
+                        select_value.append(float(val))
+
+            print(select_value)
+        except:
+            pass
+
+        try:
+            for f in self.list_z:
+
+                if 'frq'in f:
+                    val_hz=f.strip("frq: ")
+                    if "NA" in val_hz:
+                        select_z.append(val_hz)
+                    else:
+                        select_z.append(float(val_hz))
+            print(select_z)
+            """for f in self.list_z:
+
+                if 'frq'in f:
+                    val_hz=f.strip("frq: ")
+                    if "NA" in val_hz:
+                        select_z.append(val_hz)
+                    else:
+                        select_z.append(float(val_hz)/1e6)
+            print(select_z)"""
+        except:
+            pass
+
+        count=0
+        count_F=0
+
+        for i in select_PF:
+            if "PASS" in i:
+                count = count+1
+                print("count-->,",count)
+            elif "FAIL" in i:
+                count_F = count_F+1
+
+                print("count--->F,",count_F)
+        
+        list_frq_limit = ["TP3 max:13.60 min:13.0", "TP5 max:13.60 min:13.0","TP6 max:33.30 min:12.0","NA","NA","NA","TP18 max:13.60 min:13.0","TP20 max:13.60 min:13.0","NA","NA","NA","NA"]
+        folder_get = Product_Type_combobox.get()
+
+        if self.Save_serial and self.Save_serial1:
+            self.Save_serial=False
+            self.Save_serial1 = False
+            if count==12:
+                try:
+                    self.show_custom_message_box("TEST PASSED", "RESULT","black", "green")
+                    path_F=path.split(':')
+                    main_folder  = f'{path_F[0]}:\{folder_get}'
+                    print(main_folder)
+
+                    Eno = Employee_name1.get("1.0",'end-1c')
+                    Sno = Serial_name1.get("1.0",'end-1c')
+                    Pno = Product_Type_combobox.get()
+                    date = Date_name1.get("1.0",'end-1c')#
+                    tty = Test_Type_combobox.get()
+
+                    sub_folder_1 = 'Consolidated Log'
+                    sub_folder_2 = "Individual Log"
+
+                    date_time=datetime.datetime.now()
+                    obt_D_t=date_time.strftime("(%Y-%m-%d)_(%H-%M-%S)")
+                    obt_time=date_time.strftime("%H-%M-%S")
+
+                    """if "Continuous Type" in tty:
+                        sub_folder_1 = 'Consolidated Log'
+                    elif "Stepwise Type" in tty:
+                        sub_folder_1 = 'Individual Log'"""
+
+                    new_folder_path1 = os.path.join(main_folder,sub_folder_1)# consolidated folder
+                    os.makedirs(new_folder_path1,exist_ok=True)
+
+
+
+                    new_folder_path2 = os.path.join(main_folder,sub_folder_2) #individual folder
+                    os.makedirs(new_folder_path2,exist_ok=True)
+
+
+                    file_name = Serial_name1.get("1.0",'end-1c')
+                    print(new_folder_path1,new_folder_path2)
+
+                    file = f'{file_name}_{obt_time}_Pass.xlsx' #put to both consolidated and individual folder
+                    #C_log_file=f"{new_folder_path1}\@CONSOLIDATED_REPORT.xlsx"
+                    print(file,self.C_log_file)
+
+                    file_path1 = os.path.join(new_folder_path1, file) #consolid
+                    file_path2 = os.path.join(new_folder_path2, file) #Indiv
+                    print(file_path1,file_path2)
+
+                #####################################################################
+
+                    list_A=["Employee No","Product No","Serial No","Test Type"]
+                    list_B =[f'{Eno}',f'{Pno}',f'{Sno}',f'{tty}']
+                    list_D = ['Date','Time','Input +5v','Input -5v','Result']
+                    list_E = [f'{date}',f'{obt_time}', f'{datay[1]}', f'{datay[2]}','PASS']
+
+
+                    data1={}
+                    for i in range (len(list_A)):
+                        data1[list_A[i]]=[list_B[i]]  #data frame 1
+                    A01=pd.DataFrame(data1)
+
+                    data2={}
+                    for i in range (len(list_D)):
+                        data2[list_D[i]]=[list_E[i]]  #data frame 2
+                    A02=pd.DataFrame(data2)
+
+                    data3={}
+                    for i,x in  enumerate (select_mm):
+                        data3[x]=[select_value[i]]  #data frame 3
+                    A03=pd.DataFrame(data3)
+
+                    data4={}
+                    for i,x in  enumerate (select_z):
+                        data4[f"{x}"+ f"{i}"]=[select_z[i]]  #data frame 3
+                    A04=pd.DataFrame(data4)
+
+                    writer = pd.ExcelWriter(file_path1, engine='xlsxwriter') #consolidated folder
+
+
+
+                    A01.to_excel(writer, header=False, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+                    A02.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns), sheet_name='Sheet1')
+                    A03.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns), sheet_name='Sheet1')
+                    A04.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns)+len(A03.columns), sheet_name='Sheet1')
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+
+                    writer._save()
+                    writer.close()
+
+                    #########################################################
+
+
+
+                    file_pattern = os.path.join(new_folder_path1, '*.xlsx')
+
+                    # Get a list of files matching the pattern
+                    xlsx_files = glob.glob(file_pattern)
+
+                    # Print the list of Excel files
+                    print(xlsx_files)
+                    print("Here --->1")
+
+                    combined_workbook = Workbook()
+                    combined_sheet = combined_workbook.active
+
+                    for report_file in xlsx_files:
+                    # Load individual report workbook
+                        report_workbook = load_workbook(report_file)
+                        report_sheet = report_workbook.active
+
+                    # Iterate over rows in individual report
+                        for row in report_sheet.iter_rows(values_only=True):
+                            # Check if the row is empty
+                            if any(cell is not None for cell in row):
+                                # Append non-empty row to combined sheet
+                                combined_sheet.append(row)
+
+                    # Save the combined workbook
+                    combined_workbook.save(self.C_log_file)
+
+                    # Delete each file
+                    file_pattern1 = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_filess = glob.glob(file_pattern1)
+                    print(xlsx_filess)
+                    print("Here --->2")
+
+                    for file_path in xlsx_filess:
+                        if file_path != self.C_log_file and os.path.exists(file_path):
+                            os.remove(file_path)
+                    #file_paths = ['D:\Test2\output3.xlsx','D:\Test2#\output4.xlsx','D:\Test2\output5.xlsx']
+
+
+                    workbook = load_workbook(self.C_log_file)
+                    # Get the available sheet names
+                    sheet_names = workbook.sheetnames
+
+                    # Print the sheet names
+                    print(sheet_names)
+                    print("Here --->3")
+
+                    # Select the sheet you want to work with
+                    sheet = workbook['Sheet']
+
+                    # Get the first row
+                    first_row = sheet[1]
+
+                    # Get the length of the first row
+                    row_length = len(first_row)
+
+                    # Apply borders to each cell in the first row
+                    border = Border(left=Side(border_style='thin', color='000000'),
+                                    right=Side(border_style='thin', color='000000'),
+                                    top=Side(border_style='thin', color='000000'),
+                                    bottom=Side(border_style='thin', color='000000'))
+
+
+                    fill_color = "FFFF00"
+                    for cell in first_row:
+                        cell.font = Font(bold=True)
+                        cell.fill = PatternFill(start_color=fill_color, end_color=fill_color, fill_type="solid")
+                        cell.border = border
+
+                    # Save the workbook
+                    workbook.save(self.C_log_file)
+
+                    ################################################################################
+                    data = {}
+                    for i in range(len(list_A)):
+                        data[list_A[i]]=[list_B[i]]
+                    df=pd.DataFrame(data)
+                    df1t = df.transpose()
+
+                    data2 = {"Observed Results":[" "]}
+                    df2=pd.DataFrame(data2)
+                    #df2.to_excel("G:/Test/out1put.xlsx", index = False,sheet_name='Sheet1', header=True, startcol=6)
+
+                    data_x={"Voltage limits(Vpp/DMM)":[" "],"Measured Voltage values (Vpp/DMM)":[" "],"Frequency limits(Mhz)" : [" "],"Measured Frequency values (Mhz)":[" "],"Result":[" "]}
+                    dfx=pd.DataFrame(data_x)
+
+                    data3={}
+                    for i in range(len(list_D)):
+                        data3[list_D[i]] = [list_E[i]]
+                    df3 = pd.DataFrame(data3)
+                    df3t=df3.transpose()
+                    print("Here --->4")
+                    data4={}
+                    for i,x in enumerate(select_mm):
+                        data4[x] = [select_value[i],list_frq_limit[i],select_z[i],select_PF[i]]
+                    df4=pd.DataFrame(data4)
+                    df4t =df4.transpose()
+
+                    data_x1 = {"NOTE: at TP1":[" "],"Applied Voltage (Vpp): (+/-)1 v":[" "]," Applied Frequency (MHz) : 13.30":[" "]}
+                    dfx1=pd.DataFrame(data_x1)
+                    dfx1t=dfx1.transpose()
+
+                    """data5={}
+                    for i in  range (len(select_z)):
+                        data5[select_mm[i]]=[select_value[i]]  #data frame 3
+                    df5=pd.DataFrame(data5)
+                    df5t=df5.transpose()"""
+
+                    print(data4)
+                    print(len(df4t))
+                    print(len(df4t.columns))
+                    print(len(select_mm))
+
+
+
+                    writer = pd.ExcelWriter(file_path2, engine='xlsxwriter') #individual folder
+
+                    df1t.to_excel(writer, index = True,sheet_name='Sheet1', header=False, startrow = 0,startcol=0)
+                    df2.to_excel(writer, sheet_name='Sheet1', index = False, header=True, startrow=8,startcol=1)
+                    dfx.to_excel(writer,  sheet_name='Sheet1', index=False,  header=True, startrow = 10,startcol=0)
+                    df3t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=0,startcol=3)
+                    df4t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=12,startcol=0)
+                    dfx1t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=25,startcol=0)
+
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+
+                    # Add black borders to cells containing data
+                    border_format = workbook.add_format({'border': 2, 'border_color': 'black'})
+                    worksheet.conditional_format(0, 0, len(df1t) + 1, len(df1t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(0, 9, len(df3t)+1, len(df3t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(9, 0, len(df4t)+11, len(df4t.columns)+1,
+                                                {'type': 'no_blanks', 'format': border_format})
+                    writer._save()
+
+
+                    workbook = openpyxl.load_workbook(writer)
+                    sheet = workbook['Sheet1']
+                    cell1=sheet['E5']
+                    cell_text1=cell1.value
+                    if 'FAIL' in cell_text1:
+                        fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                        cell1.fill = fill
+                    elif 'PASS' in cell_text1:
+                        fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                        cell1.fill = fill
+
+                    for i in range(13,25):
+                        cell = sheet[f'E{i}']
+                        cell_text = cell.value
+                        if "PASS" in cell_text:
+                            fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                            cell.fill = fill
+                        elif "FAIL" in cell_text:
+                            fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                            cell.fill = fill
+                    workbook.save(file_path2)
+                    #df.to_excel(file_path, index=False)--------------------------------------------
+                    self.root.after(1000,self.clear_listbox)
+                    self.list_PF=[]
+                    self.list_x=[]
+                    self.list_y=[]
+                    self.list_z=[]
+                    #self.font_demo(file) A25222001206
+                except:
+                    pass
+
+            elif count_F > 0:
+
+                try:
+                    self.show_custom_message_box("TEST FAILED", "RESULT","black", "red")
+                    path_F=path.split(':')
+                    main_folder  = f'{path_F[0]}:\{folder_get}'
+                    print(main_folder)
+
+                    Eno = Employee_name1.get("1.0",'end-1c')
+                    Sno = Serial_name1.get("1.0",'end-1c')
+                    Pno = Product_Type_combobox.get()
+                    date = Date_name1.get("1.0",'end-1c')#
+                    tty = Test_Type_combobox.get()
+
+                    sub_folder_1 = "Consolidated Log"
+                    sub_folder_2 =  "Individual Log"
+
+                    date_time=datetime.datetime.now()
+                    obt_D_t=date_time.strftime("(%Y-%m-%d)_(%H-%M-%S)")
+                    obt_time=date_time.strftime("%H-%M-%S")
+
+                    """if "Continuous Type" in tty:
+                        sub_folder_1 = 'Consolidated Log'
+                    elif "Stepwise Type" in tty:
+                        sub_folder_1 = 'Individual Log'"""
+
+                    new_folder_path1 = os.path.join(main_folder,sub_folder_1)# consolidated folder
+                    os.makedirs(new_folder_path1,exist_ok=True)
+
+
+
+                    new_folder_path2 = os.path.join(main_folder,sub_folder_2) #individual folder
+                    os.makedirs(new_folder_path2,exist_ok=True)
+
+
+                    file_name = Serial_name1.get("1.0",'end-1c')
+                    print(new_folder_path1,new_folder_path2)
+
+                    file = f'{file_name}_{obt_time}_Fail.xlsx' #put to both consolidated and individual folder
+                    #C_log_file=f"{new_folder_path1}\@CONSOLIDATED_REPORT.xlsx"
+                    print(file,self.C_log_file)
+
+                    file_path1 = os.path.join(new_folder_path1, file) #consolid
+                    file_path2 = os.path.join(new_folder_path2, file) #Indiv
+                    print(file_path1,file_path2)
+
+                 #####################################################################
+
+                    list_A=["Employee No","Product No","Serial No","Test Type"]
+                    list_B =[f'{Eno}',f'{Pno}',f'{Sno}',f'{tty}']
+                    list_D = ['Date','Time','Input +5v','Input -5v','Result']
+                    list_E = [f'{date}',f'{obt_time}', f'{datay[1]}', f'{datay[2]}','FAIL']
+
+
+                    data1={}
+                    for i in range (len(list_A)):
+                        data1[list_A[i]]=[list_B[i]]  #data frame 1
+                    A01=pd.DataFrame(data1)
+
+                    data2={}
+                    for i in range (len(list_D)):
+                        data2[list_D[i]]=[list_E[i]]  #data frame 2
+                    A02=pd.DataFrame(data2)
+
+                    data3={}
+                    for i in  range (len(select_mm)):
+                        data3[select_mm[i]]=[select_value[i]]  #data frame 3
+                    A03=pd.DataFrame(data3)
+
+                    data4={}
+                    for i,x in  enumerate (select_z):
+                        data4[f"{x}"+ f"{i}"]=[select_z[i]]  #data frame 3
+                    A04=pd.DataFrame(data4)
+                    print(data4)
+
+
+                    writer = pd.ExcelWriter(file_path1, engine='xlsxwriter') #consolidated folder
+
+
+
+                    A01.to_excel(writer, header=False, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+                    A02.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns), sheet_name='Sheet1')
+                    A03.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns), sheet_name='Sheet1')
+                    A04.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns)+len(A03.columns), sheet_name='Sheet1')
+                    
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+
+                    writer._save()
+                    writer.close()
+
+                    #########################################################
+
+
+
+                    file_pattern = os.path.join(new_folder_path1, '*.xlsx')
+
+                    # Get a list of files matching the pattern
+                    xlsx_files = glob.glob(file_pattern)
+
+                    # Print the list of Excel files
+                    print(1,xlsx_files)
+
+                    combined_workbook = Workbook()
+                    combined_sheet = combined_workbook.active
+                    print(2)
+                    for report_file in xlsx_files:
+                    # Load individual report workbook
+                        report_workbook = load_workbook(report_file)
+                        report_sheet = report_workbook.active
+                        print(3)
+                    # Iterate over rows in individual report
+                        for row in report_sheet.iter_rows(values_only=True):
+                            # Check if the row is empty
+                            if any(cell is not None for cell in row):
+                                # Append non-empty row to combined sheet
+                                combined_sheet.append(row)
+                                print(4)
+                    # Save the combined workbook
+                    combined_workbook.save(self.C_log_file)
+                    print(5)
+                    # Delete each file
+                    file_pattern1 = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_filess = glob.glob(file_pattern1)
+                    print(2,xlsx_filess)
+
+                    for file_path in xlsx_filess:
+                        if file_path != self.C_log_file and os.path.exists(file_path):
+                            os.remove(file_path)
+                    #file_paths = ['D:\Test2\output3.xlsx','D:\Test2#\output4.xlsx','D:\Test2\output5.xlsx']
+
+
+                    workbook = load_workbook(self.C_log_file)
+                    # Get the available sheet names
+                    sheet_names = workbook.sheetnames
+
+                    # Print the sheet names
+                    print(sheet_names)
+
+                    # Select the sheet you want to work with
+                    sheet = workbook['Sheet']
+
+                    # Get the first row
+                    first_row = sheet[1]
+
+                    # Get the length of the first row
+                    row_length = len(first_row)
+
+                    # Apply borders to each cell in the first row
+                    border = Border(left=Side(border_style='thin', color='000000'),
+                                    right=Side(border_style='thin', color='000000'),
+                                    top=Side(border_style='thin', color='000000'),
+                                    bottom=Side(border_style='thin', color='000000'))
+
+
+                    fill_color = "FFFF00"
+                    for cell in first_row:
+                        cell.font = Font(bold=True)
+                        cell.fill = PatternFill(start_color=fill_color, end_color=fill_color, fill_type="solid")
+                        cell.border = border
+
+                    # Save the workbook
+                    workbook.save(self.C_log_file)
+
+                    ################################################################################
+                    data = {}
+                    for i in range(len(list_A)):
+                        data[list_A[i]]=[list_B[i]]
+                    df=pd.DataFrame(data)
+                    df1t = df.transpose()
+
+                    data2 = {"Observed Results":[" "]}
+                    df2=pd.DataFrame(data2)
+                    #df2.to_excel("G:/Test/out1put.xlsx", index = False,sheet_name='Sheet1', header=True, startcol=6)
+
+                    data_x={"Voltage limits(Vpp/DMM)":[" "],"Measured Voltage values (Vpp/DMM)":[" "],"Frequency limits(Mhz)" : [" "],"Measured Frequency values (Mhz)":[" "],"Result":[" "]}
+                    dfx=pd.DataFrame(data_x)
+                    
+                    data3={}
+                    for i in range(len(list_D)):
+                        data3[list_D[i]] = [list_E[i]]
+                    df3 = pd.DataFrame(data3)
+                    df3t=df3.transpose()
+
+                    data4={}
+                    for i,x in enumerate(select_mm):
+                        data4[x] = [select_value[i],list_frq_limit[i],select_z[i],select_PF[i]]
+                    df4=pd.DataFrame(data4)
+                    df4t =df4.transpose()
+
+                    data_x1 = {"NOTE: at TP1":[" "],"Applied Voltage (Vpp): (+/-)1 v":[" "]," Applied Frequency (MHz) : 13.30":[" "]}
+                    dfx1=pd.DataFrame(data_x1)
+                    dfx1t=dfx1.transpose()
+
+
+                    print(len(df4t),len(df4t.columns))
+
+                    writer = pd.ExcelWriter(file_path2, engine='xlsxwriter') #individual folder
+
+                    df1t.to_excel(writer, index = True,sheet_name='Sheet1', header=False, startrow = 0,startcol=0)
+                    df2.to_excel(writer, sheet_name='Sheet1', index = False, header=True, startrow=8,startcol=1)
+                    dfx.to_excel(writer,  sheet_name='Sheet1', index=False,  header=True, startrow = 10,startcol=0)
+                    df3t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=0,startcol=3)
+                    df4t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=12,startcol=0)
+                    dfx1t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=25,startcol=0)
+
+
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+
+                    # Add black borders to cells containing data
+                    border_format = workbook.add_format({'border': 2, 'border_color': 'black'})
+                    worksheet.conditional_format(0, 0, len(df1t) + 1, len(df1t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(0, 9, len(df3t)+1, len(df3t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(9, 0, len(df4t)+11, len(df4t.columns)+1,
+                                                {'type': 'no_blanks', 'format': border_format})
+                    writer._save()
+
+
+                    workbook = openpyxl.load_workbook(writer)
+                    sheet = workbook['Sheet1']
+                    cell1=sheet['E5']
+                    cell_text1=cell1.value
+                    if 'FAIL' in cell_text1:
+                        fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                        cell1.fill = fill
+                    elif 'PASS' in cell_text1:
+                        fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                        cell1.fill = fill
+
+                    for i in range(13,25):
+                        cell = sheet[f'E{i}']
+                        cell_text = cell.value
+                        if "PASS" in cell_text:
+                            fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                            cell.fill = fill
+                        elif "FAIL" in cell_text:
+                            fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                            cell.fill = fill
+                    workbook.save(file_path2)
+                    #df.to_excel(file_path, index=False)--------------------------------------------
+                    self.root.after(1000,self.clear_listbox)
+                    #self.font_demo(file)
+                    self.list_PF=[]
+                    self.list_x=[]
+                    self.list_y=[]
+                    self.list_z=[]
+                except:
+                    pass
+            else:
+                print("clear_listbox")
+                self.root.after(1000,self.clear_listbox)
+        else:
+            self.clear_listbox_2()
+
+    def on_closing(self):
+        # Close the serial port
+        self.ser.close()
+        # Destroy the main window
+        self.root.destroy()
+        print("close")
+
+    # Configure the main window to call the on_closing function when closed
+
+
+
+################################################## clear buttion ###############################################################################################################################
+    def threading_handler_send(self):                                                                                                                                                          #
+        t1 = threading.Thread(target=self.send_data,daemon=True)                                                                                                                               #
+        t1.start()                                                                                                                                                                             #
+                                                                                                                                                                                               #
+    """def threading_handler_receive(self):                                                                                                                                                       #
+        t2 = threading.Thread(target=self.receive_data,daemon=True)                                                                                                                            #
+        t2.start() """                                                                                                                                                                            #
+                                                                                                                                                                                               #
+    def threading_handler_relay(self):                                                                                                                                                         #
+        t3 = threading.Thread(target=self.relay_on,daemon=True)                                                                                                                                #
+        t3.start()                                                                                                                                                                             #
+                                                                                                                                                                                               #
+    def threading_handler_stop(self):                                                                                                                                                          #
+        t3 = threading.Thread(target=self.stop_printing,daemon=True)                                                                                                                           #
+        t3.start()                                                                                                                                                                             #
+                                                                                                                                                                                               #
+                                                                                                                                                                                               #
+                                                                                                                                                                                               #
+    def update(self):                                                                                                                                                                          #
+        #self.root.after(255,self.receive_data)                                                                                                                                                 #
+        self.root.after(30000,self.receive_data_1)                                                                                                                                             #
+                                                                                                                                                                                               #
+################################################# display root ######
+C_log_file = "D:\\445-0765003-3004\\Consolidated Log\\3004-CONSOLIDATED-REPORT.xlsx"
+if os.path.exists(C_log_file):
+
+    Display=display(C_log_file)
+    serial_x=serial_communications(Display.root,C_log_file)
+    Display.root.mainloop()
+
+else:
+    list_a=['Employee ID','Product No','Serial No','Test Type']
+    list_b=[' ',' ',' ',' ']
+    list_c=['Date','Time','Input +5v','Input -5v','Result']
+    list_d=[' ',' ',' ',' ',' ']
+    list_e=['TP3(v)[max:5.0 min:2.0]','TP5(v)[max:3.0 min:1.2]','TP6(v)[max:1.5 min:0.1]','TP9(v)[max:1.5 min:0.1]','TP10(v)[max:1.5 min:0.1]','TP11(v)[max:2.0 min:0.5]','TP18(v)[max:5.0 min:1.5]','TP20(v)[max:5.5 min:2.7]','TP21(v)[max:1.0 min:0.05]','FB1(v)[(+/-)1%]','FB2(v)[(+/-)1%]','TP10_DMM(v)[max:1.8 min:0.4]','TP3(MHz)[max:13.60 min:13.00]','TP5(MHz)[max:13.60 min:13.00]','TP6(MHz)[max:33.30 min:12.00]','TP9(MHz)[NA]','TP10(MHz)[NA]','TP11(Mhz)[NA]','TP18(MHz)[max:13.60 min:13.00]','TP20(MHz)[max:13.60 min:13.00]','TP21(MHz)[NA]','FB1(MHz)[NA]','FB2(MHz)[NA]','TP10_DMM(MHz)[NA]']
+    list_f=[' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
+
+    data1={}
+    for i in range (len(list_a)):
+        data1[list_a[i]]=[list_b[i]]  #data frame 1
+    A10=pd.DataFrame(data1)
+
+    data2={}
+    for i in range (len(list_c)):
+        data2[list_c[i]]=[list_d[i]]  #data frame 2
+    A20=pd.DataFrame(data2)
+
+    data3={}
+    for i in  range (len(list_e)):
+        data3[list_e[i]]=[list_f[i]]  #data frame 3
+    A30=pd.DataFrame(data3)
+
+    writer = pd.ExcelWriter(C_log_file, engine='xlsxwriter') #consolidated folder
+
+    A10.to_excel(writer, header=True, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+    A20.to_excel(writer, header=True, index=False, startrow=0, startcol=len(A10.columns), sheet_name='Sheet1')
+    A30.to_excel(writer, header=True, index=False, startrow=0, startcol=len(A10.columns) + len(A20.columns), sheet_name='Sheet1')
+
+    workbook = writer.book
+    worksheet = writer.sheets['Sheet1']
+    writer._save()
+    writer.close()
+    Display=display(C_log_file)
+    serial_x=serial_communications(Display.root,C_log_file)
+    Display.root.mainloop()
+##################################################### end ###########################################################################################################################################

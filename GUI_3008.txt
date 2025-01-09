@@ -1,0 +1,1381 @@
+###################################################### module #########################################################
+from tkinter import *
+import tkinter as tk
+from tkinter.ttk import *
+from tkinter import ttk
+from datetime import datetime
+import datetime
+from serial import *
+from serial.tools import list_ports
+import threading
+import serial,time
+from tkinter import messagebox
+import tkinter as tk
+import pyvisa
+import serial,time
+from serial import *
+from tkinter import *
+import pandas as pd
+import openpyxl
+from openpyxl.styles import Font
+from openpyxl.styles import PatternFill
+import os,glob
+from openpyxl import*
+from openpyxl import load_workbook
+from openpyxl.styles import Border, Side
+from openpyxl.utils import get_column_letter
+
+####################################################### USER and PASS ##############################################################
+"""class NCRLoginApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+############################################################### FRAME work ###################################################################
+        self.Label= tk.Label(self)
+        self.Label.pack(padx=130, pady=50)
+        self.label_username = tk.Label(self, text="Username:")
+        self.entry_username = tk.Entry(self)
+        self.label_password = tk.Label(self, text="Password:")
+        self.entry_password = tk.Entry(self, show="*")
+        self.register_button = tk.Button(self, text="Register", command=self.sign)
+        self.result_label = tk.Label(self, text="")
+        self.login_button = tk.Button(self, text="Login", command=self.login)
+        self.login_result_label = tk.Label(self, text="")
+        self.delete_user_button = tk.Button(self, text="Delete", command=self.delete)
+        self.label_username.place(x=5,y=5)
+        self.entry_username.place(x=100,y=5)
+        self.label_password.place(x=5,y=35)
+        self.entry_password.place(x=100,y=35)
+        self.register_button.place(x=5,y=70)
+        self.result_label.place()
+        self.login_button.place(x=80,y=70)
+        self.delete_user_button.place(x=145,y=70)
+        self.user_password_records = {}
+        self.user_data = {}
+##################################################################### functions user and pass #######################################################  
+    def sign(self):
+        if len(self.user_data)>=3:
+            messagebox.showerror("Error", "Maximum number of users reached.")
+            return
+        new_username = self.entry_username.get()
+        new_password = self.entry_password.get()
+        if new_username and new_password:
+            self.hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+            self.user_data[new_username] = self.hashed_password 
+            if new_username in self.user_password_records:
+                if new_password == self.user_password_records[new_username]:
+               
+                    messagebox.showerror("all ready existing")
+                else:
+                    messagebox.showinfo("user name all ready existing")
+            else:
+                self.user_password_records[new_username] =self.hashed_password 
+                messagebox.showinfo("Success", "Username and password added to records.")
+                messagebox.showinfo("successfully", "valid username or password.")
+                self.clear_listbox()
+        else:
+            messagebox.showerror("Error", "Invalid username or password.")
+        
+    def authenticate(self, username, password):
+        if self.hashed_password  in self.user_data:
+            self.hashed_password  = self.user_data[username]
+        if bcrypt.checkpw(password.encode('utf-8'),self.hashed_password ):
+            return True
+        return False
+
+    def login(self):
+        input_username = self.entry_username.get()
+        input_password = self.entry_password.get()
+        if self.authenticate(input_username, input_password):
+            messagebox.showinfo("successfully", "valid username or password.")
+            self.clear_listbox()
+            self.Display = display(self)
+            self.serial_communications=serial_communications(self.Display.root,C_log_file)
+        else:
+            messagebox.showerror("Error", "Invalid username or password.")
+       
+    def clear_listbox(self):
+            self.entry_username.delete(0,tk.END)
+            self.entry_password.delete(0,tk.END)
+
+    def delete(self):
+            entry_username_to_delete = self.entry_username.get()
+            entry_pws_to_delete = self.entry_password.get()
+            if self.authenticate(entry_username_to_delete, entry_pws_to_delete):
+                del self.user_data[entry_username_to_delete]
+                del self.user_password_records[entry_username_to_delete]
+            
+                messagebox.showinfo("successfully", "delete")
+                self.clear_listbox()
+            else:
+                messagebox.showerror("Error", "Invalid username or password.")"""
+##################################################### class1 ###########################################################################
+class display:
+    def __init__(self,C_log_file):
+        global Product_Type_combobox,Test_Type_combobox,Test_Number_combobox,datetime_var
+        global Employee_name1,Serial_name1,Date_name1,datetime_label,datetime_entry,Lb2,image1,image,Sb2
+        global Start_button,Stop_button,Test_Number
+        global connect_button,path,username_label,username_entry,password_label,password_entry,login_button
+####################################################  root ################################################################
+        self.root=tk.Tk()
+        self.root.title("NCR Corporation")
+        self.root.minsize(1024,720)
+        self.x_com = serial_communications( self.root,C_log_file)
+####################################################  path ################################################################
+        directory_path = os.getcwd()
+        path = directory_path.replace("\\","/")
+#################################################### image ###############################################################
+        self.root.iconphoto(False,PhotoImage(file=f"{path}/logo2.png"))
+        image = tk.PhotoImage(file=f"{path}/logo3.png")
+        label = tk.Label(self.root, image=image,width=320,height=100,background="#ffffff")
+        label.place(x=3, y=2)
+        image1 = tk.PhotoImage(file=f"{path}/logo4.png")
+        label1= tk.Label(self.root, image=image1,width=320,height=100,background="#ffffff")
+        label1.place(x=1038, y=2)
+################################################### label1 ##################################################################
+        Employee_name = tk.Button(self.root, text="EMPLOYEE ID.    :",background="#FFFFFF",width=20,height=1,font=("Times New Roman", 13, "bold"))
+        Employee_name.place(x=540, y=20)
+        Date_name     = tk.Button(self.root, text="DATE.                    :",background="#FFFFFF",width=20,height=1,font=("Times New Roman", 13, "bold"))
+        Date_name.place(x=540, y=100)
+        Serial_name   = tk.Button(self.root, text="SERIAL No.          :",background="#FFFFFF",width=20,height=1,font=("Times New Roman", 13, "bold"))
+        Serial_name.place(x=540, y=60)
+        Employee_name1= Text (self.root,width=20,height=1.3,font=("Times New Roman", 15, "bold"),wrap="none")
+        Employee_name1.place(x=770,y=20)
+        Serial_name1  = Text(self.root,width=20,height=1.3,font=("Times New Roman", 15, "bold"),wrap="none")
+        Serial_name1.place(x=770,y=60)
+        Date_name1    = Text(self.root,width=20,height=1.3,font=("Times New Roman", 15, "bold"))
+        Date_name1.place(x=770,y=100)
+################################################### combobox ##################################################################
+        Product_name = tk.Button(self.root, text="PRODUCT TYPE.  :",background="#FFFFFF",width=20, height= 1,font=("Times New Roman", 12, "bold"))
+        Product_name.place(x=2, y=180)
+        Test_name = tk.Button(self.root, text="TEST TYPE.       :",background="#FFFFFF",width=20,height= 1,font=("Times New Roman", 12, "bold"))
+        Test_name.place(x=2, y=220)
+        Product_Type = ["-------","484-0105718-3008","NA"]
+        Product_Type_combobox = ttk.Combobox(self.root, values=Product_Type,background="#ffffff",font=("Times New Roman", 12, "bold"))
+        Product_Type_combobox.place(x=210, y=180)
+        Product_Type_combobox.current(0)
+        Test_Type = ["-------","Continuous Type"]
+        Test_Type_combobox = ttk.Combobox(self.root, values=Test_Type,background="#ffffff",font=("Times New Roman", 12, "bold"),state="disable")
+        Test_Type_combobox.place(x=210, y=220)
+        Test_Type_combobox.current(0)
+################################################## label ###############################################################
+        Sb2 = ttk.Scrollbar(self.root,orient = 'vertical')
+        Sb2v = ttk.Scrollbar(self.root,orient = 'horizontal')
+        Lb2 = Listbox(self.root, width =100,height=25,xscrollcommand =Sb2v.set, yscrollcommand= Sb2.set,background="#ffffff",font=("Times New Roman", 12, ""))
+        Lb2.place(x=472,y=174)
+        Sb2.config(command=Lb2.yview)
+        Sb2.place(x=1276, y=172, height=506)
+        Sb2v.config(command = Lb2.xview)
+        Sb2v.place(x=470, y=679, width=821)
+################################################## date ####################################################################
+        datetime_label = ttk.Label(self.root, text="Select Date/Time:")
+        now = datetime.datetime.now()
+        datetime_var = tk.StringVar(value=now.strftime("%Y-%m-%d %H:%M:%S"))
+        datetime_var = tk.StringVar(value=now.strftime("%d-%m-%Y"))
+        datetime_entry = ttk.Entry(self.root, textvariable=datetime_var)
+################################################ buttion ###########################################################################
+        connect_button=tk.Button(self.root,text="CONNECT",width=20,height=1,command=lambda:[self.x_com.print_selections(),self.x_com.port_open(),self.x_com.Tektronix()],bg="#7F7FFF",font=("Times New Roman", 12, "bold"))
+        connect_button.place(x=100,y=340)
+        Start_button=tk.Button(self.root,text= "START_TEST",width=20,height=1,command=lambda:[self.x_com.threading_handler_send(),self.x_com.button_clicked(),self.x_com.button_clicked2(),self.x_com.checkSerialSaves()],bg="#008000",font=("Times New Roman", 12, "bold")) #self.x_com.threading_handler_relay(),self.x_com.update()
+        Start_button.place(x=100,y=380)
+        Stop_button=tk.Button(self.root,text="DISCONNECT",width=20,height=1,command=lambda:[self.x_com.threading_handler_stop()],bg="red",font=("Times New Roman", 12, "bold"))#command=lambda:[self.x_com.stop_printing()]
+        Stop_button.place(x=100,y=420)
+        self.root.config(background="#A9A9A9")
+############################################### combobox function ###############################################################################################
+        def activate_combobox(self):
+            global Test_Type_combobox
+
+            if Test_Type_combobox.get() == "Stepwise Type":
+                Test_Number_combobox.config(state="readonly",background="#ffffff")
+            else:
+                Test_Number_combobox.config(state="disabled",background="#ffffff")
+        Test_Type_combobox.bind("<<ComboboxSelected>>", activate_combobox)
+
+        def activate_combobox1(self):
+
+                global Product_Type_combobox
+
+                if Product_Type_combobox.get() == "484-0105718-3008":
+                    Test_Type_combobox.config(state="readonly",background="#ffffff")
+                else:
+                    Test_Type_combobox.config(state="disabled",background="#ffffff")
+
+        Product_Type_combobox.bind("<<ComboboxSelected>>", activate_combobox1)
+###############################################################################################################################################
+class serial_communications:
+    def __init__(self,root_instance,C_log_file):
+        super().__init__()
+        self.root=root_instance
+        self.comport_var1 = tk.StringVar()
+        self.ser = serial.Serial()
+        self.comport_names1=[]
+        self.list_w=[] # Limits
+        self.list_x=[] # display value name
+        self.list_y=[] # display value 
+        self.list_z=[] # display unit
+        self.list_PF=[] # display pass and fail
+        self.list_board_cv=[] # current and voltage
+        self.vlaue_board_cv=[] # current and voltage value
+        self.unit_board_cv=[]
+        self.unit_PF=[]
+        self.printing =True
+        self.relay_ready=True
+        self.connection_flag = False
+        self.Save_serial=False
+        self.Save_serial1=False
+        self.count=0
+        self.C_log_file=C_log_file
+        print("------>",self.C_log_file)
+########################################################################################################################################################
+    def Tektronix(self):
+        global rm,oscilloscope
+        rm = pyvisa.ResourceManager()
+        print(rm.list_resources())
+        oscilloscope = rm.open_resource ("USB::0x0699::0x03C4::C024576::INSTR") #('USB::0x0699::0x0368::C010614::INSTR')
+        Lb2.insert(tk.END,"  INSTRUMENT        : "  +     oscilloscope.query("*IDN?"))
+        oscilloscope.write('CH1:VOLts 0.5')
+        oscilloscope.write('HORizontal:MAIn:SCAle 100E-9')
+    def serial_comm(self):
+
+########################################################## AUTO comports ###############################################################################################################
+        """self.comports = list_ports.comports()
+        self.comports = sorted(self.comports)
+        self.comport_names1=[]
+        for port in self.comports:
+            self.comport_names1.append(port.device)
+        self.comport_names1 = [port.device for port in self.comports]
+        self.comport_var1 = tk.StringVar(value=self.comport_names1[0])
+        self.comport = self.comport_var1.get()
+        self.ser.port = self.comport
+        self.ser.baudrate = 115200
+        self.ser.bytesize=8
+        self.ser.stopbits=1
+        self.ser.timeout = 3
+        self.ser.bytesize=serial.EIGHTBITS
+        self.ser.parity=serial.PARITY_NONE
+        self.ser.stopbits=serial.STOPBITS_ONE
+        return  self.comport"""
+###################################################################################################################################################################      
+        self.comports = list_ports.comports()
+        self.comports = sorted(self.comports)
+        self.comport_names1=[]
+        for port in self.comports:
+            self.comport_names1.append(port.device)
+        self.comport_var1 = tk.StringVar(value=self.comport_names1[0])
+        self.comport = self.comport_var1.get()
+        self.ser.port = "COM10"
+        self.ser.baudrate = 115200
+        self.ser.bytesize=8
+        self.ser.stopbits=1
+        self.ser.timeout = 3
+        self.ser.bytesize=serial.EIGHTBITS
+        self.ser.parity=serial.PARITY_NONE
+        self.ser.stopbits=serial.STOPBITS_ONE
+        return  "COM10"
+
+    def print_selections(self):
+        global Product_Type_combobox,Test_Type_combobox
+        try:
+            re_com =self.serial_comm()
+            Lb2.insert(tk.END,"  PORT NO                : "  +               re_com)
+        except IndexError as index_err:
+            if index_err:
+                messagebox.showinfo(title="NCR Corporation", message=" Port is Not Connect ",)
+
+        except SerialException as ser_err:
+            if ser_err:
+                messagebox.showinfo(title="NCR Corporation", message=" Port is  Not Connect ",)
+    def port_open(self):
+        global context_menu,time1
+        try:
+            self.serial_comm()
+            print("open port")
+            self.printing = True
+            self.ser.open()
+            print("open port2")
+            connect_button.config(state=tk.DISABLED)
+            self.connection_flag = True
+            Serial_name1.delete("1.0",'end-1c')
+            Employee_name1.delete("1.0",'end-1c')
+            Serial_name1.bind("<KeyPress>",self.handle_keypress)
+            Employee_name1.bind('<Return>', self.first_wizard_enter)
+            Employee_name1.focus_set()
+            Serial_name1.config(state='disabled')
+            Serial_name1.bind('<KeyRelease-c>', self.copy_text)
+            time1 = time.perf_counter()
+            print(time1)
+            Serial_name1.bind('<KeyRelease-v>', self.paste_text)
+            context_menu = tk.Menu(Serial_name1, tearoff=0)
+            context_menu.add_command(label='Copy', command=lambda: Serial_name1.event_generate('<<Copy>>'))
+            context_menu.add_command(label='Paste', command=lambda: Serial_name1.event_generate('<<Paste>>'))
+            Serial_name1.bind('<Button-3>', self.show_context_menu)
+            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        except:
+            pass
+    def popup_message(self):
+        messagebox.showinfo(title="NCR Corporation", message=" Port is  Not Connect ",)
+#######################################################################################################################################################
+    def first_wizard_enter(self,event):
+        input_text = Employee_name1.get('1.0', 'end-1c')
+        print(input_text)
+        if input_text != " ":
+            if  event.keysym == 'Return':
+                Serial_name1.delete('1.0', 'end')
+                Serial_name1.config(state='normal')
+                Serial_name1.focus_set()
+                return "break"
+    def second_wizard_enter(self,event):
+        input_text = Serial_name1.get('1.0', 'end-1c')
+        print(input_text)
+        if input_text != " ":
+            if  event.keysym == 'Return': 
+                Employee_name1.config(state='normal')
+                Employee_name1.focus_set()
+    def copy_text(self,event):
+        if Serial_name1.tag_ranges(tk.SEL):
+            selected_text = Serial_name1.get(tk.SEL_FIRST, tk.SEL_LAST)
+            Serial_name1.clipboard_clear()
+            Serial_name1.clipboard_append(selected_text)
+    def paste_text(self,event):
+        global time2
+        clipboard_text = Serial_name1.clipboard_get()
+        time2 = time.perf_counter()
+        print(time2)
+        if time2-time1 <1:
+            Serial_name1.insert(tk.INSERT, clipboard_text)
+    def show_context_menu(self,event):
+        context_menu.post(event.x_root, event.y_root)
+    def handle_keypress(self,event):
+        print("inside")
+        if event.keysym == 'Return':
+            return "break" 
+        elif event.keysym == 'BackSpace':
+            self.erase_character()
+            return "break"
+    def erase_character(self):
+        Serial_name1.delete("end-2c")
+#######################################################################################################################################################################################################
+    def receive_data(self):
+        global datay
+        state = False
+        if(self.printing):
+            try:
+                if self.connection_flag == True:
+                  if self.ser.in_waiting > 0:
+                        try:
+                            data = self.ser.read_all().decode("utf-8").strip()
+                            print(data)
+                            if "*" in data:
+                                datay = data.split("*")
+                                print(datay)
+                                
+                                for c_v in datay:
+                                    if "5V voltage" in c_v or "BootCurrentTest_5v" in c_v:
+                                        self.list_board_cv.append(c_v)
+
+                                    if c_v !='FAIL'and c_v !='PASS' and c_v !='\n' and c_v !='' and c_v != "BootCurrentTest_5v" and c_v !="5V voltage" and c_v !="Power ON" and c_v !='V' and c_v!='A':
+                                        self.vlaue_board_cv.append(float(c_v)) 
+
+
+                                    if c_v =='V' or c_v == 'A':
+                                        self.unit_board_cv.append(c_v)
+                                    
+                                    if c_v =="PASS" or c_v =="FAIL":
+                                            self.unit_PF.append(c_v)
+
+                                print("1",self.list_board_cv)
+                                print("2",self.vlaue_board_cv)
+                                print("3",self.unit_board_cv)
+                                print("4",self.unit_PF)
+
+                                
+                                for i in range (len(self.unit_board_cv)):
+                                    Lb2.insert(tk.END, f"{self.list_board_cv[i]}  :  {self.vlaue_board_cv[i]}   {self.unit_board_cv[i]}    {self.unit_PF[i]}")
+                                    Lb2.insert(END,"\n")
+                                    self.DataCollection (self.list_board_cv[i],self.vlaue_board_cv[i],self.unit_PF[i],self.unit_board_cv[i],"Min : -0.1 A  Max : 0.3 A")
+                                    
+                            else:
+                               
+                                print("**",data)
+
+                        
+                                if '(TX_+15V)'==data:
+                                    retrun_val=self.cro_data(5)
+                                    if (retrun_val>= 14.25 and retrun_val <= 15.75 ):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 14.25 V  Max : 15.75 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V","Min : 14.25 V  Max : 15.75 V")
+                                        print("pass")
+                                    
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 14.25 V  Max : 15.75 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V","Min : 14.25 V  Max : 15.75 V")
+                                        print("Fail")
+
+                                if '(RX_+3.3V)'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+                                    
+                                if '15V(J1.1)_EN'==data:
+                                    retrun_val=self.cro_data(5)
+                                    if (retrun_val>= 14.25 and retrun_val <= 15.75 ):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 14.25 V  Max : 15.75 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V","Min : 14.25 V  Max : 15.75 V")
+                                        print("pass")
+                          
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 14.25 V  Max : 15.75 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V","Min : 14.25 V  Max : 15.75 V")
+                                        print("Fail")
+                                
+                                  
+                                if '(RX_J2.1) MS_5v'==data:
+                                    retrun_val=self.cro_data(2)
+                                  
+                                    if (retrun_val >= 4.75 and retrun_val <= 5.25):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 4.75 V  Max : 5.25 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V", "Min : 4.75 V  Max : 5.25 V")
+                                        print("pass")
+                    
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 4.75 V  Max : 5.25 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V", "Min : 4.75 V  Max : 5.25 V")
+                                        print("Fail")
+                                    
+
+                                if '(RX_J3.2) TX_5v'==data:
+                                    retrun_val=self.cro_data(2)
+                                   
+                                    print("--->",retrun_val)
+                                    if (retrun_val >= 4.75 and retrun_val <= 5.25):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 4.75 V  Max : 5.25 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",   "Min : 4.75 V  Max : 5.25 V")
+                                        print("pass")
+                         
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 4.75 V  Max : 5.25 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",   "Min : 4.75 V  Max : 5.25 V")
+                                        print("Fail")
+
+
+                                if '(RX_+2.6V)'==data:
+                                    retrun_val=self.cro_data(2)
+                                    
+                                    if (retrun_val>=2.47 and retrun_val <= 2.75 ):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 2.47 V  Max : 2.75 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V","Min : 2.47 V  Max : 2.75 V")
+                                        print("pass")
+                             
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 2.47 V  Max : 2.75 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V","Min : 2.47 V  Max : 2.75 V")
+                                        print("Fail")
+
+
+                                if '(D1) - OFF'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+                                    
+                                if '(D2) - OFF'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(D3) - OFF'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+                                
+                                if '(D1) - ON'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 1.87 and retrun_val <= 1.96):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("Fail")
+                                    
+                                if '(D2) - ON'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 1.87 and retrun_val <= 1.96):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("Fail")
+
+                                if '(D3) - ON'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 1.87 and retrun_val <= 1.96):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 1.87 V  Max : 1.96 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 1.87 V  Max : 1.96 V")
+                                        print("Fail")
+                                
+
+                                if '(RX_J1.16) RDY HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+                                
+                                if '(RX_J1.14) TS6-THK HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(RX_J1.12) TS6-BLK HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(RX_J1.10) SP-FST HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(RX_J1.8) SP-MV HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(RX_J1.6) SP-BLK HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if '(RX_J1.4) U-DFD HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+
+                                if '(RX_J1.2) U-BLK HI'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.12 and retrun_val <= 3.46):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.12 V  Max : 3.46 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.12 V  Max : 3.46 V")
+                                        print("Fail")
+
+                                if 'DAC-Power-UP'== data:
+                                    pass
+                                    #retrun_val=self.cro_data(1)
+                                    #self.TextEditor1(data,retrun_val)
+                                    #self.DataCollection(data,retrun_val,"NA","V","NA")
+                                    #print(retrun_val)
+
+                                if 'TS6A_Voltage'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.06 and retrun_val <= 3.21):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.06 V  Max : 3.21 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.06 V  Max : 3.21 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.06 V  Max : 3.21 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.06 V  Max : 3.21 V")
+                                        print("Fail")
+
+                                if 'TS6B_Voltage'==data:
+                                    retrun_val=self.cro_data(1)
+                                    if (retrun_val>= 3.06 and retrun_val <= 3.21):
+                                        self.TextEditor(data,retrun_val,"V","PASS","            Min : 3.06 V  Max : 3.21 V")
+                                        self.DataCollection (data,retrun_val,"PASS","V",  "Min : 3.06 V  Max : 3.21 V")
+                                        print("pass")
+                                    else :
+                                        self.TextEditor(data,retrun_val,"V","FAIL","            Min : 3.06 V  Max : 3.21 V")
+                                        self.DataCollection (data,retrun_val,"FAIL","V",  "Min : 3.06 V  Max : 3.21 V")
+                                        print("Fail")
+
+                                if 'DAC-Power-DOWN'== data:
+                                    pass
+                                    #retrun_val=self.cro_data(1)
+                                    #self.TextEditor1(data,retrun_val)
+                                    #self.DataCollection(data,retrun_val,"NA","V","NA")
+                                    #print(retrun_val)
+                                
+                                if 'Power OFF'==data:
+                                    retrun_val=self.cro_data()
+                                    self.TextEditor(data,retrun_val)
+                            print(self.list_x)
+                            print(self.list_y)
+                            print(self.list_z)
+                            print(self.list_PF)
+                        except:
+                            pass
+
+            except SerialException :
+                state = True
+                self.printing = False
+                self.ser.flush()
+ 
+        if(state):
+          messagebox.showinfo(title="NCR Corporation", message=" fist select self test ")
+##############################################################################################################################################################################
+    def TextEditor1 (self,data_cro,rms_voltage):
+        Lb2.insert(tk.END, f"{data_cro} : {rms_voltage}")
+        Lb2.insert(END,'\n') 
+
+    def TextEditor(self,test_name,test_value,test_unit,test_PF,max_min): 
+        Lb2.insert(tk.END, f"{test_name} : {test_value} {test_unit} {test_PF} {max_min}" )
+        Lb2.insert(END,'\n') 
+    
+
+    def DataCollection (self,data,value,condition,unit,limits):
+        self.list_x.append(data)
+        self.list_y.append(value)
+        self.list_PF.append(condition)
+        self.list_z.append(unit) 
+        self.list_w.append(limits)
+
+
+        """def DataCollection1 (self,data,value,unit,condition="NA",limits="NA"):
+        self.list_x.append(data)
+        self.list_y.append(value)
+        self.list_PF.append(condition)
+        self.list_z.append(unit)
+        self.list_w.append(limits)"""
+
+#############################################################################################################################################################################
+        self.serFlag = 0
+        self.Event_t = True
+    def send_data(self):
+        global Event_t,Date_name
+        list_cmd=["6010","6104","6105","6106","6107","6102","6302","6303","6304","6511","6512","6513","6208","6209","620A","620B","620C","620D","620E","620F","610F","610E","6000"]
+        #list_cmd=["6010","6000"]
+        Event_t = True
+        flag = True
+        Product_name = Product_Type_combobox.get()
+        Test_name= Test_Type_combobox.get()
+        datetime = datetime_var.get()
+        Employee_name=Employee_name1.get("1.0",'end-1c')
+        Serial_name=Serial_name1.get("1.0",tk.END)
+        Date_name=Date_name1.get("1.0",'end-1c')
+        if  Product_name != "-------" and Test_name !="-------":
+                Lb2.insert(tk.END,"  EMPLOYEE ID.       : "  +        Employee_name + '.')
+                Lb2.insert(tk.END,"  SERIAL NO.             : "  +          Serial_name +'.')
+                Lb2.insert(tk.END,"  PRODUCT TYPE.     : "  +         Product_name +'.')
+                Lb2.insert(tk.END,"  TEST TYPE.              : "  +            Test_name +'.')
+                Lb2.insert(tk.END,"  DATE.                       : "  +             datetime +'.')
+                Lb2.insert(END,  "\n")
+                Date_name1.insert(tk.END," "+ datetime +'.')
+        else:
+                messagebox.showinfo(" showinfo ", " Select In Product , Test , Employee name , Serial NO, Date ")
+                Start_button.config(state=tk.NORMAL)
+        self.connection_flag=True
+        print(len(Serial_name))
+        
+    
+        try:
+            if self.connection_flag == True and Employee_name.isalpha() or Employee_name.isalnum() or Employee_name.isnumeric():
+                if len(Serial_name)-1 ==12:
+                    if "Continuous Type" in Test_Type_combobox.get() or "Stepwise Type" in Test_Type_combobox.get():
+                        
+                        
+                        while (Event_t):
+                            try:
+                                if self.ser.is_open:
+                                    print( self.ser.is_open)
+
+                                    if "Continuous Type" in Test_Type_combobox.get():
+                                        for pin_on in list_cmd:
+                                            print(f"--->{pin_on}")
+                                            self.ser.write(pin_on.encode('utf-8'))
+                                            time.sleep(3) # needed mcu back to back communication
+                                            self.receive_data()
+                                          
+                                        Event_t = False
+                                        self.receive_data_1()
+                            except SerialException:
+                                if self.ser.is_open:
+                                    pass
+                    else:
+                        self.connection_flag=False
+        except:
+            pass
+#################################################################################################################################################################################
+    
+
+
+
+ 
+
+#############################################################################################################################################################################################
+    def cro_data(self,value):
+        oscilloscope.write('DAT:ENC ASCIi')
+        oscilloscope.write("SELect:CH1 ON ")  
+        oscilloscope.write(f"CH1:VOLts {value}") 
+        time.sleep(1)
+        oscilloscope.write('MEASUrement:IMMed:TYPe CRMs')
+        time.sleep(1.5)
+        rms_voltage = float(oscilloscope.query('MEASUrement:IMMed:VALue?'))
+        rms_voltage = round(rms_voltage,2)
+        print("10rms", rms_voltage)
+        
+        return rms_voltage
+
+#########################################################################################################################################################################################################
+    def stop_printing(self):
+        global Event_r
+        Event_r = True
+        while (Event_r):
+                    if self.ser.is_open:
+                        if "Continuous Type" or "Stepwise Type" in Test_Type_combobox.get():
+                            print("Relay off ")
+                            Event_r = False
+                            pin_on = "3100"
+                            self.ser.write(pin_on.encode('utf-8'))
+                            self.ser.reset_output_buffer()
+        time.sleep(0.05)
+        if(self.relay_ready):
+            if self.ser.in_waiting > 0:
+                try:
+                    data = self.ser.read(self.ser.in_waiting).decode("utf-8")
+                    x =  data.split('\n')
+                    self.ser.reset_input_buffer()
+                    for i in x :
+                        Lb2.insert(tk.END, i)
+                except:
+                    pass
+        self.printing=False
+        self.root.after_cancel( self.receive_data)
+        print("stop")
+        Event_r = False
+        connect_button.config(state=tk.NORMAL)
+        self.ser.close()
+        Lb2.delete(0,tk.END)
+#######################################################################################################################################################################################################
+    def clear_listbox(self):
+        Lb2.delete(0,tk.END)
+        Serial_name1.delete("1.0",'end-1c')
+        Date_name1.delete("1.0",'end-1c')
+        Start_button.config(state=tk.NORMAL)
+    def clear_listbox_2(self):
+        Lb2.delete(0,tk.END)
+        Serial_name1.delete("1.0",'end-1c')
+        Date_name1.delete("1.0",'end-1c')
+        Start_button.config(state=tk.NORMAL)
+    def button_clicked(self):
+         value =Serial_name1 .get("1.0",'end-1c')
+         value1 =Employee_name1.get("1.0",'end-1c')
+         if value.isalnum():
+            if len(value)!=0 and len(value)==12:
+                self.Save_serial=True
+                print("Input number:", value)
+                print("Serial v+",self.Save_serial1)
+            elif len(value)!=0 and len(value)<12:
+                messagebox.showinfo(message="Invalid Serial Number")
+                self.Save_serial=False
+                print("Serial 1v-",self.Save_serial1)
+            else:
+                messagebox.showinfo(message="Invalid Serial Number")
+                self.Save_serial=False
+                print("Serial 2v-",self.Save_serial1)
+         else:
+            messagebox.showinfo(message="Invalid Serial Number")
+            self.Save_serial=False
+            print("Serial 3v-",self.Save_serial1)
+    def button_clicked2(self):
+         value1 =Employee_name1.get("1.0",'end-1c')
+         if value1.isalnum() or value1.isalpha() or value1.isnumeric():
+                self.Save_serial1=True
+                print("Input name:",value1)
+                print(self.Save_serial1)
+         else:
+            messagebox.showinfo(message="Empty Name")
+            self.Save_serial1=False
+            print(self.Save_serial1)
+    def checkSerialSaves(self):
+         if self.Save_serial and self.Save_serial1:
+            Start_button.config(state=tk.DISABLED)
+         else:
+            self.clear_listbox_2()
+    def show_custom_message_box(self,message, title, text_color, bg_color):
+        root = tk.Tk()
+        root.withdraw()  
+        top = tk.Toplevel(root)
+        top.title(title)
+        print("show")
+        window_width = 300
+        window_height = 150
+        screen_width = top.winfo_screenwidth()
+        screen_height = top.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        top.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        label = tk.Label(top, text=message, font=("TkDefaultFont", 12, "bold"), fg=text_color, bg=bg_color)
+        label.pack(padx=20, pady=10)
+        button = tk.Button(top, text="Close", command=top.destroy)
+        button.pack(pady=10)
+        top.focus_set()
+        top.grab_set()
+        top.wait_window()
+##############################################################################################################################################################################
+    read = ()
+    def receive_data_1(self):
+        global path,file_name,file,file_path,x, select_PF 
+        select_PF=[]            
+  
+        print("retrieve")
+
+        print(self.list_PF)
+        count=0
+        count_F=0
+        for i in self.list_PF:
+            if "PASS" in i:
+                count = count+1
+                print("count-->,",count)
+            elif "FAIL" in i:
+                count_F = count_F+1
+                print("count--->F,",count_F)
+            folder_get = Product_Type_combobox.get()
+
+        if self.Save_serial and self.Save_serial1:
+            self.Save_serial=False
+            self.Save_serial1 = False
+##################################################################################################################################################################################################################
+            if count==22:
+                try:
+                    self.show_custom_message_box("TEST PASSED", "RESULT","black", "green")
+                    path_F=path.split(':')
+                    main_folder  = f'{path_F[0]}:\\{folder_get}'
+                    print(main_folder)
+                    Eno = Employee_name1.get("1.0",'end-1c')
+                    Sno = Serial_name1.get("1.0",'end-1c')
+                    Pno = Product_Type_combobox.get()
+                    date = Date_name1.get("1.0",'end-1c')#
+                    tty = Test_Type_combobox.get()
+                    sub_folder_1 = 'Consolidated Log'
+                    sub_folder_2 = "Individual Log"
+                    date_time=datetime.datetime.now()
+                    obt_D_t=date_time.strftime("(%Y-%m-%d)_(%H-%M-%S)")
+                    obt_time=date_time.strftime("%H-%M-%S")
+                    new_folder_path1 = os.path.join(main_folder,sub_folder_1)
+                    os.makedirs(new_folder_path1,exist_ok=True)
+                    new_folder_path2 = os.path.join(main_folder,sub_folder_2) 
+                    os.makedirs(new_folder_path2,exist_ok=True)
+                    file_name = Serial_name1.get("1.0",'end-1c')
+                    print(new_folder_path1,new_folder_path2)
+                    file = f'{file_name}_{obt_time}_Pass.xlsx' 
+                    print(file,self.C_log_file)
+                    file_path1 = os.path.join(new_folder_path1, file) 
+                    file_path2 = os.path.join(new_folder_path2, file) 
+                    print(file_path1,file_path2)
+################################################################################################################################################################################################
+                    list_A=["Employee No","Product No","Serial No","Test Type"]
+                    list_B =[f'{Eno}',f'{Pno}',f'{Sno}',f'{tty}']
+                    list_D = ['Date','Time','Result']
+                    list_E = [f'{date}',f'{obt_time}','PASS']
+                    data1={}
+                    for i in range (len(list_A)):
+                        data1[list_A[i]]=[list_B[i]]  
+                    A01=pd.DataFrame(data1)
+                    data2={}
+                    for i in range (len(list_D)):
+                        data2[list_D[i]]=[list_E[i]]  
+                    A02=pd.DataFrame(data2)
+                    data3={}
+                    for i in  range (len(self.list_x)):
+                        data3[self.list_x[i]]=[self.list_y[i]]  
+                    A03=pd.DataFrame(data3)
+                    print(data3)
+
+                    writer = pd.ExcelWriter(file_path1, engine='xlsxwriter') #consolidated folder
+                    A01.to_excel(writer, header=False, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+                    A02.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns), sheet_name='Sheet1')
+                    A03.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns), sheet_name='Sheet1')
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+                    writer._save()
+                    writer.close()
+                    
+################################################################################################################################################################################
+                    file_pattern = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_files = glob.glob(file_pattern)
+                    print(xlsx_files)
+                    combined_workbook = Workbook()
+                    combined_sheet = combined_workbook.active
+                    for report_file in xlsx_files:
+                        report_workbook = load_workbook(report_file)
+                        report_sheet = report_workbook.active
+                        for row in report_sheet.iter_rows(values_only=True):
+                            if any(cell is not None for cell in row):
+                                combined_sheet.append(row)
+                                combined_workbook.save(self.C_log_file)
+                    file_pattern1 = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_filess = glob.glob(file_pattern1)
+                    print(xlsx_filess)
+                    for file_path in xlsx_filess:
+                        if file_path != self.C_log_file and os.path.exists(file_path):
+                            os.remove(file_path)
+                    workbook = load_workbook(self.C_log_file)
+                    sheet_names = workbook.sheetnames
+                    print(sheet_names)
+                    sheet = workbook['Sheet']
+                    first_row = sheet[1]
+                    row_length = len(first_row)
+                    border = Border(left=Side(border_style='thin', color='000000'),
+                                    right=Side(border_style='thin', color='000000'),
+                                    top=Side(border_style='thin', color='000000'),
+                                    bottom=Side(border_style='thin', color='000000'))
+                    fill_color = "FFFF00"
+                    for cell in first_row:
+                        cell.font = Font(bold=True)
+                        cell.fill = PatternFill(start_color=fill_color, end_color=fill_color, fill_type="solid")
+                        cell.border = border
+                    workbook.save(self.C_log_file) 
+#########################################################################################################################################################################################################################
+                    data = {}
+                    for i in range(len(list_A)):
+                        data[list_A[i]]=[list_B[i]]
+                    df=pd.DataFrame(data)
+                    df1t = df.transpose()
+
+                    data2 = {"Observed Results":[" "]}
+                    df2=pd.DataFrame(data2)
+                    data_x={"Description":[" "],"Limits":[" "],"Values":[" "],"Unit":[" "],"Result":[" "]}
+                    dfx=pd.DataFrame(data_x)
+
+                    data3={}
+                    for i in range(len(list_D)):
+                        data3[list_D[i]] = [list_E[i]]
+                    df3 = pd.DataFrame(data3)
+                    df3t=df3.transpose()
+
+                    data4={}
+                    for i,x in enumerate(self.list_x):
+                        data4[x] = [self.list_w[i],self.list_y[i],self.list_z[i],self.list_PF[i]]
+                    df4=pd.DataFrame(data4)
+                    df4t =df4.transpose()
+                    print(data4)
+                    print(len(df4t))
+                    print(len(df4t.columns))
+                
+                    writer = pd.ExcelWriter(file_path2, engine='xlsxwriter') #individual folder
+                    df1t.to_excel(writer, index = True,sheet_name='Sheet1', header=False, startrow = 0,startcol=0)
+                    df2.to_excel(writer, sheet_name='Sheet1', index = False, header=True, startrow=8,startcol=1)
+                    dfx.to_excel(writer,  sheet_name='Sheet1', index=False,  header=True, startrow = 10,startcol=0)
+                    df3t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=0,startcol=3)
+                    df4t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=12,startcol=0)
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+                    border_format = workbook.add_format({'border': 2, 'border_color': 'black'})
+                    worksheet.conditional_format(0, 0, len(df1t) + 1, len(df1t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(0, 9, len(df3t)+1, len(df3t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(9, 0, len(df4t)+11, len(df4t.columns)+1,
+                                                {'type': 'no_blanks', 'format': border_format})
+                    writer._save()
+                    workbook = openpyxl.load_workbook(writer)
+                    sheet = workbook['Sheet1']
+                    cell1=sheet['E3']
+                    cell_text1=cell1.value
+                    if 'FAIL' in cell_text1:
+                        fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                        cell1.fill = fill
+                    elif 'PASS' in cell_text1:
+                        fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                        cell1.fill = fill
+                    for i in range(12,35):
+                        cell = sheet[f'E{i}']
+                        cell_text = cell.value
+                        if "PASS" in cell_text:
+                            fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                            cell.fill = fill
+                        elif "FAIL" in cell_text:
+                            fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                            cell.fill = fill
+                    workbook.save(file_path2)
+######################################################### excel sheet ###################################################################################
+                    file_path = file_path2  
+                    workbook = openpyxl.load_workbook(file_path)
+                    sheet = workbook.active
+                    for i in range(0,5):
+                        column_index = i
+                        max_length = 0
+                        for cell in sheet[chr(65 + column_index)]:
+                            try:
+                                if len(str(cell.value)) > max_length:
+                                    max_length = len(str(cell.value))
+                            except Exception as e:
+                                print(f"Error: {e}")
+                            sheet.column_dimensions[chr(65 + column_index)].width = max_length + 2
+                            workbook.save(file_path)
+######################################################################################################################################################
+                    workbook = openpyxl.load_workbook("D:/484-0105718-3008/Consolidated Log/3008-CONSOLIDATED-REPORT.xlsx")
+                    sheet = workbook.active
+
+                    for i in range(1, 30):
+                        column_index = i
+                        max_length = 0
+
+                        for cell in sheet.iter_cols(min_col=column_index, max_col=column_index, min_row=1, max_row=sheet.max_row):
+                            try:
+                                if len(str(cell[0].value)) > max_length:
+                                    max_length = len(str(cell[0].value))
+                            except Exception as e:
+                                print(f"Error: {e}")
+
+                        sheet.column_dimensions[get_column_letter(column_index)].width = max_length + 2
+
+                    workbook.save("D:/484-0105718-3008/Consolidated Log/3008-CONSOLIDATED-REPORT.xlsx")
+                    workbook.close()
+                                 
+########################################################################################################################################################################                   
+                    self.root.after(1000,self.clear_listbox)
+                    self.list_PF=[]
+                    self.list_w=[]
+                    self.list_x=[]
+                    self.list_y=[]
+                    self.list_z=[]
+                    self.list_board_cv=[]
+                    self.vlaue_board_cv=[]
+                    self.unit_PF=[]
+                    self.unit_board_cv=[]
+              
+                except:
+                    pass
+#####################################################################################################################################################################################################
+            elif count_F > 0:
+                try:
+                    self.show_custom_message_box("TEST FAILED", "RESULT","black", "red")
+                    path_F=path.split(':')
+                    main_folder  = f'{path_F[0]}:\\{folder_get}'
+                    print(main_folder)
+                    Eno = Employee_name1.get("1.0",'end-1c')
+                    Sno = Serial_name1.get("1.0",'end-1c')
+                    Pno = Product_Type_combobox.get()
+                    date = Date_name1.get("1.0",'end-1c')#
+                    tty = Test_Type_combobox.get()
+                    sub_folder_1 = "Consolidated Log"
+                    sub_folder_2 =  "Individual Log"
+                    date_time=datetime.datetime.now()
+                    obt_D_t=date_time.strftime("(%Y-%m-%d)_(%H-%M-%S)")
+                    obt_time=date_time.strftime("%H-%M-%S")
+                    new_folder_path1 = os.path.join(main_folder,sub_folder_1)
+                    os.makedirs(new_folder_path1,exist_ok=True)
+                    new_folder_path2 = os.path.join(main_folder,sub_folder_2)
+                    os.makedirs(new_folder_path2,exist_ok=True)
+                    file_name = Serial_name1.get("1.0",'end-1c')
+                    print(new_folder_path1,new_folder_path2)
+                    file = f'{file_name}_{obt_time}_Fail.xlsx'
+                    print(file,self.C_log_file)
+                    file_path1 = os.path.join(new_folder_path1, file) 
+                    file_path2 = os.path.join(new_folder_path2, file)
+                    print(file_path1,file_path2)
+
+####################################################################################################################################################################################################################################
+
+                    list_A=["Employee No","Product No","Serial No","Test Type"]
+                    list_B =[f'{Eno}',f'{Pno}',f'{Sno}',f'{tty}']
+                    list_D = ['Date','Time','Result']
+                    list_E = [f'{date}',f'{obt_time}', 'FAIL']
+                    data1={}
+                    for i in range (len(list_A)):
+                        data1[list_A[i]]=[list_B[i]]  
+                    A01=pd.DataFrame(data1)
+                    data2={}
+                    for i in range (len(list_D)):
+                        data2[list_D[i]]=[list_E[i]]  
+                    A02=pd.DataFrame(data2)
+                    data3={}
+                    for i in  range (len(self.list_x)):
+                        data3[self.list_x[i]]=[self.list_y[i]]  
+                    A03=pd.DataFrame(data3) 
+                  
+          
+                    writer = pd.ExcelWriter(file_path1, engine='xlsxwriter')
+                    A01.to_excel(writer, header=False, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+                    A02.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns), sheet_name='Sheet1')
+                    A03.to_excel(writer, header=False, index=False, startrow=0, startcol=len(A01.columns) + len(A02.columns), sheet_name='Sheet1')
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+                    writer._save()
+                    writer.close()
+
+###############################################################################################################################################################
+
+                    file_pattern = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_files = glob.glob(file_pattern)
+                    print(1,xlsx_files)
+                    combined_workbook = Workbook()
+                    combined_sheet = combined_workbook.active
+                    print(2)
+                    for report_file in xlsx_files:
+                        report_workbook = load_workbook(report_file)
+                        report_sheet = report_workbook.active
+                        print(3)
+                        for row in report_sheet.iter_rows(values_only=True):
+                            if any(cell is not None for cell in row):
+                                combined_sheet.append(row)
+                                print(4)
+                    combined_workbook.save(self.C_log_file)
+                    print(5)
+                    file_pattern1 = os.path.join(new_folder_path1, '*.xlsx')
+                    xlsx_filess = glob.glob(file_pattern1)
+                    print(2,xlsx_filess)
+                    for file_path in xlsx_filess:
+                        if file_path != self.C_log_file and os.path.exists(file_path):
+                            os.remove(file_path)
+                    workbook = load_workbook(self.C_log_file)
+                    sheet_names = workbook.sheetnames
+                    print(sheet_names)
+                    sheet = workbook['Sheet']
+                    first_row = sheet[1]
+                    row_length = len(first_row)
+                    border = Border(left=Side(border_style='thin', color='000000'),
+                                    right=Side(border_style='thin', color='000000'),
+                                    top=Side(border_style='thin', color='000000'),
+                                    bottom=Side(border_style='thin', color='000000'))
+                    fill_color = "FFFF00"
+                    for cell in first_row:
+                        cell.font = Font(bold=True)
+                        cell.fill = PatternFill(start_color=fill_color, end_color=fill_color, fill_type="solid")
+                        cell.border = border
+                    workbook.save(self.C_log_file)
+
+##################################################################################################################################################################################################
+                    data = {}
+                    for i in range(len(list_A)):
+                        data[list_A[i]]=[list_B[i]]
+                    df=pd.DataFrame(data)
+                    df1t = df.transpose()
+
+                    data2 = {"Observed Results":[" "]}
+                    df2=pd.DataFrame(data2)
+                    data_x={"Description":[" "],"Limits":[" "],"Values":[" "],"Unit":[" "],"Result":[" "]}
+                    dfx=pd.DataFrame(data_x)
+
+                    data3={}
+                    for i in range(len(list_D)):
+                        data3[list_D[i]] = [list_E[i]]
+                    df3 = pd.DataFrame(data3)
+                    df3t=df3.transpose()
+
+                    data4={}
+                    for i,x in enumerate(self.list_x):
+                        data4[x] = [self.list_w[i],self.list_y[i],self.list_z[i],self.list_PF[i]]
+                    df4=pd.DataFrame(data4)
+                    df4t =df4.transpose()
+
+
+                    writer = pd.ExcelWriter(file_path2, engine='xlsxwriter') 
+                    df1t.to_excel(writer, index = True,sheet_name='Sheet1', header=False, startrow = 0,startcol=0)
+                    df2.to_excel(writer, sheet_name='Sheet1', index = False, header=True, startrow=8,startcol=1)
+                    dfx.to_excel(writer,  sheet_name='Sheet1', index=False,  header=True, startrow = 10,startcol=0)
+                    df3t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=0,startcol=3)
+                    df4t.to_excel(writer, sheet_name='Sheet1', index = True, header=False, startrow=12,startcol=0)
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+                    border_format = workbook.add_format({'border': 2, 'border_color': 'black'})
+                    worksheet.conditional_format(0, 0, len(df1t) + 1, len(df1t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(0, 9, len(df3t)+1, len(df3t.columns),
+                                                {'type': 'no_blanks', 'format': border_format})
+                    worksheet.conditional_format(9, 0, len(df4t)+11, len(df4t.columns)+1,
+                                                {'type': 'no_blanks', 'format': border_format})
+                    writer._save()
+                    workbook = openpyxl.load_workbook(writer)
+                    sheet = workbook['Sheet1']
+                    cell1=sheet['E3']
+                    cell_text1=cell1.value
+                    if 'FAIL' in cell_text1:
+                        fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                        cell1.fill = fill
+                    elif 'PASS' in cell_text1:
+                        fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                        cell1.fill = fill
+                    for i in range(12,35):
+                        cell = sheet[f'E{i}']
+                        cell_text = cell.value
+                        if "PASS" in cell_text:
+                            fill = PatternFill(start_color='00FF00',end_color='00FF00', fill_type='solid')
+                            cell.fill = fill
+                        elif "FAIL" in cell_text:
+                            fill = PatternFill(start_color='FA4E2E',end_color='FA4E2E', fill_type='solid')
+                            cell.fill = fill
+                    workbook.save(file_path2)
+
+################################################################# excel sheet ##################################################################################                    
+                    file_path = file_path2  
+                    workbook = openpyxl.load_workbook(file_path)
+                    sheet = workbook.active
+                    for i in range(0,5):
+                        column_index = i
+                        max_length = 0
+                        for cell in sheet[chr(65 + column_index)]:
+                            try:
+                                if len(str(cell.value)) > max_length:
+                                    max_length = len(str(cell.value))
+                            except Exception as e:
+                                print(f"Error: {e}")
+                            sheet.column_dimensions[chr(65 + column_index)].width = max_length + 2
+                            workbook.save(file_path)
+###########################################################################################################################################################################
+                    workbook = openpyxl.load_workbook("D:/484-0105718-3008/Consolidated Log/3008-CONSOLIDATED-REPORT.xlsx")
+                    sheet = workbook.active
+
+                    for i in range(1, 30):
+                        column_index = i
+                        max_length = 0
+
+                        for cell in sheet.iter_cols(min_col=column_index, max_col=column_index, min_row=1, max_row=sheet.max_row):
+                            try:
+                                if len(str(cell[0].value)) > max_length:
+                                    max_length = len(str(cell[0].value))
+                            except Exception as e:
+                                print(f"Error: {e}")
+
+                        sheet.column_dimensions[get_column_letter(column_index)].width = max_length + 2
+
+                    workbook.save("D:/484-0105718-3008/Consolidated Log/3008-CONSOLIDATED-REPORT.xlsx")
+                    workbook.close()          
+#################################################################################################################################################################
+                    self.root.after(1000,self.clear_listbox)
+                    self.list_PF=[]
+                    self.list_x=[]
+                    self.list_y=[]
+                    self.list_z=[]
+                    self.list_w=[]
+                    self.list_board_cv=[]
+                    self.vlaue_board_cv=[]
+                    self.unit_PF=[]
+                    self.unit_board_cv=[]
+                except:
+                    pass
+            else:
+                print("clear_listbox")
+                self.root.after(10000,self.clear_listbox)
+        else:
+            self.clear_listbox_2()
+
+    def on_closing(self):
+        self.ser.close()
+        self.root.destroy()
+        print("close")
+#################################################################################################################################################################################
+    def threading_handler_send(self):                                                                                                                                                          #
+        t1 = threading.Thread(target=self.send_data,daemon=True)                                                                                                                               #
+        t1.start()                                                                                                                                                                             #
+    def threading_handler_relay(self):                                                                                                                                                         #
+        t3 = threading.Thread(target=self.relay_on,daemon=True)                                                                                                                                #
+        t3.start()                                                                                                                                                                             #
+    def threading_handler_stop(self):                                                                                                                                                          #
+        t3 = threading.Thread(target=self.stop_printing,daemon=True)                                                                                                                           #
+        t3.start()                                                                                                                                                                             #
+    def update(self):                                                                                                                                                                          #
+        self.root.after(30000,self.receive_data_1)                                                                                                                                             #
+###############################################################################################################################################################################################
+C_log_file = "D:\\484-0105718-3008\\Consolidated Log\\3008-CONSOLIDATED-REPORT.xlsx"
+if os.path.exists(C_log_file):
+    Display=display(C_log_file)
+    serial_x=serial_communications(Display.root,C_log_file)
+    Display.root.mainloop()
+
+else:
+    list_a=['Employee ID  ','Product Number  ','Serial Number   ','Test Type        ']
+    list_b=[' ',' ',' ',' ']
+    list_c=['Date       ','Time    ','Result  ']
+    list_d=['  ','  ','  ']
+    list_e=['BootCurrentTest_5v','(RX_+3.3V)','(TX_+15V)','(RX_J2.1) MS_5v','(RX_J3.2) TX_5v','(RX_+2.6V)','(D1) - OFF','(D2) - OFF','(D3) - OFF','(D1) - ON','(D2) - ON','(D3) - ON','(RX_J1.16) RDY HI','(RX_J1.14) TS6-THK HI','(RX_J1.12) TS6-BLK HI','(RX_J1.10) SP-FST HI','(RX_J1.8) SP-MV HI','(RX_J1.6) SP-BLK HI','(RX_J1.4) U-DFD HI','(RX_J1.2) U-BLK HI','TS6A_Voltage','TS6B_Voltage']
+    list_f=[' ']*len(list_e)
+ 
+    data1={}
+    for i in range (len(list_a)):
+        data1[list_a[i]]=[list_b[i]]  
+    A10=pd.DataFrame(data1)
+    data2={}
+    for i in range (len(list_c)):
+        data2[list_c[i]]=[list_d[i]]  
+    A20=pd.DataFrame(data2)
+    data3={}
+    for i in  range (len(list_e)):
+        data3[list_e[i]]=[list_f[i]]  
+    A30=pd.DataFrame(data3)
+    writer = pd.ExcelWriter(C_log_file, engine='xlsxwriter')
+    A10.to_excel(writer, header=True, index=False, startrow=0, startcol=0, sheet_name='Sheet1')
+    A20.to_excel(writer, header=True, index=False, startrow=0, startcol=len(A10.columns), sheet_name='Sheet1')
+    A30.to_excel(writer, header=True, index=False, startrow=0, startcol=len(A10.columns) + len(A20.columns), sheet_name='Sheet1')
+    writer._save()
+    writer.close()
+    Display=display(C_log_file)
+    serial_x=serial_communications(Display.root,C_log_file)
+    Display.root.mainloop()
+
+##################################################### end ###########################################################################################################################################
